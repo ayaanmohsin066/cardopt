@@ -1,0 +1,23 @@
+{
+  "id": "avion-visa-infinite",
+  "name": "RBC Avion Visa Infinite Card",
+  "issuer": "rbc",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "points",
+  "program_id": "avion-rewards",
+  "annual_fee": 120,
+  "first_year_fee": null,
+  "fx_fee_pct": 2.5,
+  "base_rate": 1,
+  "caps": null,
+  "earn_rules": [
+    { "categories": ["travel"], "rate": 1.25, "cap_id": null, "after_cap_rate": null }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://rbcroyalbank.com/credit-cards/travel/rbc-avion-visa-infinite.html",
+  "last_verified": "2026-10-14"
+}
