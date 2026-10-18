@@ -1,0 +1,29 @@
+{
+  "id": "cash-back-world-elite-mastercard",
+  "name": "Desjardins Cash Back World Elite Mastercard",
+  "issuer": "desjardins",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 100,
+  "first_year_fee": null,
+  "fx_fee_pct": null,
+  "base_rate": 1,
+  "caps": [
+    { "id": "groceries-cap", "amount": 10000, "period": "year" },
+    { "id": "dining-cap", "amount": 6000, "period": "year" }
+  ],
+  "earn_rules": [
+    { "categories": ["groceries"], "rate": 4, "cap_id": "groceries-cap", "after_cap_rate": 1 },
+    { "categories": ["dining"], "rate": 3, "cap_id": "dining-cap", "after_cap_rate": 1 },
+    { "categories": ["entertainment"], "rate": 3, "cap_id": "none", "after_cap_rate": null },
+    { "categories": ["transit"], "rate": 3, "cap_id": "none", "after_cap_rate": null }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.desjardins.com/ca/personal/loans-credit/credit-cards/cash-back-world-elite-mastercard/index.jsp",
+  "last_verified": "2026-10-18"
+}
