@@ -1,0 +1,24 @@
+{
+  "id": "aeroplan-visa-infinite",
+  "name": "TD Aeroplan Visa Infinite Card",
+  "issuer": "td",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "points",
+  "program_id": "aeroplan-rewards",
+  "annual_fee": 139,
+  "first_year_fee": 0,
+  "fx_fee_pct": 2.5,
+  "base_rate": 1,
+  "caps": null,
+  "earn_rules": [
+    { "categories": ["gas"], "rate": 1.5, "cap_id": null, "after_cap_rate": null },
+    { "categories": ["groceries"], "rate": 1.5, "cap_id": null, "after_cap_rate": null }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.td.com/ca/en/personal-banking/products/credit-cards/aeroplan/aeroplan-visa-infinite-card/",
+  "last_verified": "2026-10-18"
+}
