@@ -1,0 +1,31 @@
+{
+  "id": "cashback-world-elite-mastercard",
+  "name": "BMO CashBack World Elite Mastercard",
+  "issuer": "bmo",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 139,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 1,
+  "caps": [
+    { "id": "groceries-cap", "amount": 500, "period": "month" },
+    { "id": "transit-cap", "amount": 300, "period": "month" },
+    { "id": "gas-cap", "amount": 300, "period": "month" },
+    { "id": "recurring-cap", "amount": 500, "period": "month" }
+  ],
+  "earn_rules": [
+    { "categories": ["groceries"], "rate": 5, "cap_id": "groceries-cap", "after_cap_rate": 1 },
+    { "categories": ["transit"], "rate": 4, "cap_id": "transit-cap", "after_cap_rate": 1 },
+    { "categories": ["gas"], "rate": 3, "cap_id": "gas-cap", "after_cap_rate": 1 },
+    { "categories": ["recurring_bills"], "rate": 2, "cap_id": "recurring-cap", "after_cap_rate": 1 }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.bmo.com/main/personal/credit-cards/bmo-cashback-world-elite-mastercard",
+  "last_verified": "2026-10-18"
+}
