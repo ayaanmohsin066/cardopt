@@ -7,6 +7,7 @@ import { CATEGORY_LABELS, formatCad } from "../lib/format";
 import { describeCreditRule, describePolicy } from "../lib/policy-text";
 import type { RecommendRequest, RecommendResults, Stage, WorkerMessage } from "../lib/run-recommendations";
 import type { CardReport } from "./Importer";
+import { AnimatedNumber, Bar } from "./motion";
 
 interface Props {
   catalog: Catalog;
@@ -26,18 +27,16 @@ const STAGE_LABELS: Record<Stage, string> = {
 const signed = (x: number) => `${x >= 0 ? "+" : "−"}${formatCad(Math.abs(x))}`;
 
 /** A signed dollar figure: green for a gain, red for a loss, plain when it rounds to $0.00. */
-function Signed({ value, suffix = "" }: { value: number; suffix?: string }) {
+function Signed({ value, suffix = "", animate = false }: { value: number; suffix?: string; animate?: boolean }) {
   const tone = value > 0.005 ? "text-gain" : value < -0.005 ? "text-loss" : "";
   return (
     <span className={`tabular-nums ${tone}`}>
-      {signed(value)}
+      {animate ? <AnimatedNumber value={value} format={signed} /> : signed(value)}
       {suffix}
     </span>
   );
 }
 
-const TH = "px-3 py-2 font-semibold";
-const TD = "px-3 py-2.5";
 
 export function EarnMore({ catalog, reports, version }: Props) {
   const [running, setRunning] = useState<{ stage: Stage; done: number; total: number } | null>(null);
@@ -53,9 +52,18 @@ export function EarnMore({ catalog, reports, version }: Props) {
 
   if (catalog.empty) {
     return (
-      <section className="panel px-5 py-4">
-        <h2 className="text-base font-semibold">Earn more</h2>
-        <p className="mt-1 text-sm text-muted">Recommendations need verified cards.</p>
+      <section className="panel">
+        <header className="panel-header">
+          <div className="flex flex-col gap-0.5">
+            <p className="eyebrow">Recommendations</p>
+            <h2 className="panel-title">Earn more</h2>
+          </div>
+        </header>
+        <div className="panel-body">
+          <div className="empty">
+            <p>Recommendations need verified cards.</p>
+          </div>
+        </div>
       </section>
     );
   }
@@ -118,10 +126,10 @@ export function EarnMore({ catalog, reports, version }: Props) {
 
   return (
     <section className="panel" aria-label="Earn more">
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
-        <div className="flex flex-col gap-0.5">
+      <header className="panel-header">
+        <div className="flex max-w-2xl flex-col gap-0.5">
           <p className="eyebrow">Recommendations</p>
-          <h2 className="text-base font-semibold">Earn more</h2>
+          <h2 className="panel-title">Earn more</h2>
           <p className="text-sm text-muted">
             Which card to use for what, and whether a different card would pay off, based on your own spending.
           </p>
@@ -142,7 +150,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
         </div>
       </header>
 
-      <div className="flex flex-col gap-6 p-5 empty:hidden">
+      <div className="panel-body empty:hidden">
       {running && (
         <div className="flex flex-col gap-1" role="status" aria-live="polite">
           <div className="flex justify-between text-xs text-muted">
@@ -157,7 +165,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
             aria-label={STAGE_LABELS[running.stage]}
             className="h-1.5 w-full overflow-hidden rounded-full bg-meter-track"
           >
-            <div className="h-full rounded-full bg-meter-fill transition-[width]" style={{ width: `${pct}%` }} />
+            <Bar fraction={pct / 100} className="bg-meter-fill" />
           </div>
         </div>
       )}
@@ -166,19 +174,19 @@ export function EarnMore({ catalog, reports, version }: Props) {
 
       {results && proj && (
         <div className={`flex flex-col gap-6 ${running ? "opacity-60" : ""}`}>
-          <p className="rounded-lg border border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted">
-            <span className="tag mr-2">Projection</span>
+          <p className="inset px-4 py-3 text-xs leading-relaxed text-muted">
+            <span className="tag mr-2 text-foreground">Projection</span>
             All yearly figures are a projection: your {proj.months} month{proj.months === 1 ? "" : "s"} of statements × 12/
             {proj.months}. Welcome bonuses are counted once, not multiplied.
             {proj.short_data && " With fewer than 3 months, seasonal spending may skew this."}
           </p>
 
           {best && best.ongoing.total_gain_annual > 0.005 && (
-            <div className="rounded-lg border border-border bg-background text-sm">
+            <div className="inset text-sm">
               <div className="flex flex-col gap-1.5 px-5 py-5">
                 <span className="eyebrow">Compared with how you used your cards on these statements</span>
-                <span className="text-4xl font-semibold tracking-tight sm:text-5xl">
-                  <Signed value={best.ongoing.total_gain_annual} />
+                <span className="figure-hero">
+                  <Signed value={best.ongoing.total_gain_annual} animate />
                   <span className="text-base font-medium text-muted"> /year</span>
                 </span>
               </div>
@@ -210,7 +218,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
           )}
 
           {excluded.length > 0 && (
-            <div className="flex flex-col gap-1.5 rounded-lg border border-border-strong border-l-4 border-l-foreground bg-surface-2 px-4 py-3.5 text-sm">
+            <div className="callout text-sm">
               <p className="eyebrow text-foreground">Not yet verified</p>
               <p className="font-semibold">Left out because their terms aren&apos;t verified yet:</p>
               <ul className="flex flex-col gap-1">
@@ -244,7 +252,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
                     "You're already using your cards about as well as possible for this spending."
                   )}
                 </p>
-                <ul className="flex flex-col divide-y divide-border rounded-lg border border-border bg-background text-sm empty:hidden">
+                <ul className="flex flex-col divide-y divide-border inset text-sm empty:hidden">
                   {results.better.credit_rules.map((c) => (
                     <li key={`${c.card_id}-${c.description}`} className="px-4 py-2.5">{describeCreditRule(c, name)}</li>
                   ))}
@@ -256,7 +264,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
                     ))}
                 </ul>
                 <details className="text-sm">
-                  <summary className="w-fit cursor-pointer rounded-md text-muted hover:text-foreground">Categories with no spending in these statements</summary>
+                  <summary className="disclosure">Categories with no spending in these statements</summary>
                   <ul className="mt-2 flex flex-col gap-1.5 text-muted">
                     {results.better.policy
                       .filter((p) => !p.has_spend)
@@ -267,42 +275,42 @@ export function EarnMore({ catalog, reports, version }: Props) {
                   </ul>
                 </details>
                 {(results.better.moves.some((m) => Math.abs(m.gain_annual) > 0.005) || Math.abs(results.better.credit_gain_annual) > 0.005) && (
-                  <div className="overflow-x-auto rounded-lg border border-border">
-                    <table className="w-full min-w-[560px] text-left text-sm">
-                      <thead className="bg-surface-2">
-                        <tr className="eyebrow">
-                          <th className={TH}>Category</th>
-                          <th className={TH}>On these statements</th>
-                          <th className={TH}>Suggested</th>
-                          <th className={`${TH} text-right`}>Per year</th>
+                  <div className="table-wrap">
+                    <table className="data-table min-w-[560px]">
+                      <thead>
+                        <tr>
+                          <th>Category</th>
+                          <th>On these statements</th>
+                          <th>Suggested</th>
+                          <th className="num">Per year</th>
                         </tr>
                       </thead>
                       <tbody>
                         {results.better.moves
                           .filter((m) => Math.abs(m.gain_annual) > 0.005)
                           .map((m) => (
-                            <tr key={m.category} className="border-t border-border">
-                              <td className={`${TD} font-medium`}>{CATEGORY_LABELS[m.category]}</td>
-                              <td className={TD}>{m.current.map((x) => `${name(x.card_id)} ${formatCad(x.spend)}`).join(", ")}</td>
-                              <td className={TD}>{m.suggested.map((x) => `${name(x.card_id)} ${formatCad(x.spend)}`).join(", ")}</td>
-                              <td className={`${TD} text-right`}><Signed value={m.gain_annual} /></td>
+                            <tr key={m.category}>
+                              <td className="font-medium">{CATEGORY_LABELS[m.category]}</td>
+                              <td>{m.current.map((x) => `${name(x.card_id)} ${formatCad(x.spend)}`).join(", ")}</td>
+                              <td>{m.suggested.map((x) => `${name(x.card_id)} ${formatCad(x.spend)}`).join(", ")}</td>
+                              <td className="num"><Signed value={m.gain_annual} /></td>
                             </tr>
                           ))}
                         {Math.abs(results.better.credit_gain_annual) > 0.005 && (
-                          <tr className="border-t border-border">
-                            <td className={TD} colSpan={3}>Purchase credits captured</td>
-                            <td className={`${TD} text-right`}><Signed value={results.better.credit_gain_annual} /></td>
+                          <tr>
+                            <td colSpan={3}>Purchase credits captured</td>
+                            <td className="num"><Signed value={results.better.credit_gain_annual} /></td>
                           </tr>
                         )}
                         {Math.abs(results.better.other_gain_annual) > 0.005 && (
-                          <tr className="border-t border-border">
-                            <td className={TD} colSpan={3}>Foreign transaction fees and rounding</td>
-                            <td className={`${TD} text-right`}><Signed value={results.better.other_gain_annual} /></td>
+                          <tr>
+                            <td colSpan={3}>Foreign transaction fees and rounding</td>
+                            <td className="num"><Signed value={results.better.other_gain_annual} /></td>
                           </tr>
                         )}
-                        <tr className="border-t-2 border-border-strong bg-surface-2 font-semibold">
-                          <td className={TD} colSpan={3}>= Total</td>
-                          <td className={`${TD} text-right`}><Signed value={results.better.gain_annual} /></td>
+                        <tr className="bg-surface-2 font-semibold [&>td]:border-t-2 [&>td]:border-t-border-strong">
+                          <td colSpan={3}>= Total</td>
+                          <td className="num"><Signed value={results.better.gain_annual} /></td>
                         </tr>
                       </tbody>
                     </table>
@@ -310,7 +318,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
                 )}
               </>
             ) : (
-              <p className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">
+              <p className="inset px-4 py-3 text-sm text-muted">
                 {results.better.status === "no_usable_cards"
                   ? "None of your cards has verified terms for this spending yet."
                   : "Not enough data to suggest changes."}
@@ -328,26 +336,26 @@ export function EarnMore({ catalog, reports, version }: Props) {
               after annual fees. First year uses first-year fees and a welcome bonus if hitting it pays off.
             </p>
             {changes.length === 0 ? (
-              <p className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">No other verified cards to compare yet.</p>
+              <p className="inset px-4 py-3 text-sm text-muted">No other verified cards to compare yet.</p>
             ) : (
               <div className="flex flex-col items-start gap-3">
-                <div className="w-full overflow-x-auto rounded-lg border border-border">
-                <table className="w-full min-w-[640px] text-left text-sm">
-                  <thead className="bg-surface-2">
-                    <tr className="eyebrow">
-                      <th className={TH}>Change</th>
-                      <th className={`${TH} text-right`}>First year</th>
-                      <th className={`${TH} text-right`}>Ongoing, per year</th>
-                      <th className={TH}>Notes</th>
+                <div className="w-full table-wrap">
+                <table className="data-table min-w-[640px]">
+                  <thead>
+                    <tr>
+                      <th>Change</th>
+                      <th className="num">First year</th>
+                      <th className="num">Ongoing, per year</th>
+                      <th>Notes</th>
                     </tr>
                   </thead>
                   <tbody>
                     {shown.map((c) => (
-                      <tr key={`${c.remove}>${c.add}`} className="border-t border-border">
-                        <td className={`${TD} font-medium`}>{changeLabel(c)}</td>
-                        <td className={`${TD} text-right`}><Signed value={c.first_year.gain_annual} /></td>
-                        <td className={`${TD} text-right`}><Signed value={c.ongoing.gain_annual} /></td>
-                        <td className={`${TD} text-xs text-muted`}>
+                      <tr key={`${c.remove}>${c.add}`}>
+                        <td className="font-medium">{changeLabel(c)}</td>
+                        <td className="num"><Signed value={c.first_year.gain_annual} /></td>
+                        <td className="num"><Signed value={c.ongoing.gain_annual} /></td>
+                        <td className="text-xs text-muted">
                           {c.first_year.bonus_value > 0
                             ? `Includes ${formatCad(c.first_year.bonus_value)} welcome bonus${c.first_year.bonus_projected ? " (spend requirement projected from your pace)" : ""}`
                             : c.first_year.bonus_pursued
@@ -367,7 +375,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
               </div>
             )}
             {results.sens && (
-              <p className="rounded-lg border border-border bg-background px-4 py-3 text-xs leading-relaxed text-muted">
+              <p className="inset px-4 py-3 text-xs leading-relaxed text-muted">
                 <span className="tag mr-2">Sensitivity</span>
                 {results.sens.scenarios === 0
                   ? "Point values: none of these cards' programs has a range of verified values, so there's nothing to vary."

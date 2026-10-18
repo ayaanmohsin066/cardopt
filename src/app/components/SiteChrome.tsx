@@ -14,16 +14,16 @@ function LockIcon() {
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-border bg-surface">
       <div className={`${SHELL} flex h-14 items-center justify-between gap-4`}>
-        <Link href="/" className="flex items-center gap-2.5 rounded-md" aria-label="CardOpt home">
-          <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-accent-foreground">
+        <Link href="/" className="flex items-center gap-2.5 rounded-control" aria-label="CardWise home">
+          <span aria-hidden className="flex h-7 w-7 items-center justify-center rounded-control bg-accent text-accent-foreground shadow-panel">
             <svg viewBox="0 0 16 16" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.5">
               <rect x="1.75" y="3.5" width="12.5" height="9" rx="1.75" />
               <path d="M1.75 6.75h12.5M4.5 10h2.5" />
             </svg>
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">CardOpt</span>
+          <span className="text-[15px] font-semibold tracking-tight">CardWise</span>
         </Link>
         <div className="flex items-center gap-2">
           <span className="tag">Canada · CAD</span>
@@ -40,7 +40,7 @@ export function SiteHeader() {
 export function SiteFooter() {
   return (
     <footer className="mt-auto border-t border-border">
-      <div className={`${SHELL} flex flex-col gap-1 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between`}>
+      <div className={`${SHELL} flex flex-col gap-1.5 py-8 text-xs leading-relaxed text-muted sm:flex-row sm:items-center sm:justify-between`}>
         <p>For information only, not financial advice. Your issuer&apos;s own terms decide what you earn.</p>
         <p>A redesign of the original CardOpt by @srinihal007.</p>
       </div>

@@ -33,7 +33,7 @@ const stop = (text: string | null) => (text !== null && /[.!?]$/.test(text.trim(
 
 function Source({ url }: { url: string }) {
   return (
-    <a href={url} target="_blank" rel="noreferrer noopener" className="underline">
+    <a href={url} target="_blank" rel="noreferrer noopener" className="link-action text-[length:inherit] text-foreground">
       card terms
     </a>
   );
@@ -49,7 +49,7 @@ const NUDGE_LABELS: Record<Nudge["kind"], string> = {
 /** A reminder card: neutral and informational, never styled as a warning. */
 function NudgeCard({ kind, children }: { kind: Nudge["kind"]; children: React.ReactNode }) {
   return (
-    <li className="flex gap-3 rounded-lg border border-border bg-background px-4 py-3.5">
+    <li className="flex gap-3 inset px-4 py-3.5">
       <svg aria-hidden viewBox="0 0 20 20" className="mt-0.5 h-5 w-5 shrink-0 text-muted" fill="none" stroke="currentColor" strokeWidth="1.5">
         <circle cx="10" cy="10" r="7.25" />
         <path d="M10 9.25v4.25M10 6.5v.01" strokeLinecap="round" />
@@ -122,12 +122,12 @@ export function PerksPanel({ card, items, report }: Props) {
         <p className="eyebrow">Reminders</p>
         <h3 className="text-base font-semibold">Benefits you may not be using</h3>
         <p className="max-w-2xl text-xs leading-relaxed text-muted">
-          For information only, not advice. The card&apos;s own terms decide what&apos;s covered; CardOpt only repeats what
+          For information only, not advice. The card&apos;s own terms decide what&apos;s covered; CardWise only repeats what
           they say.
         </p>
         </div>
         {nudges.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border-strong px-4 py-5 text-center text-sm text-muted">
+          <p className="empty">
             Nothing on these statements to flag.
           </p>
         ) : (
@@ -142,37 +142,37 @@ export function PerksPanel({ card, items, report }: Props) {
       <div className="flex flex-col gap-3 border-t border-border pt-6">
         <h3 className="section-title">All listed benefits</h3>
         {listing.status === "unverified" ? (
-          <p className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">
+          <p className="inset px-4 py-3 text-sm text-muted">
             This card&apos;s benefits are not yet verified.
           </p>
         ) : listing.perks.length === 0 ? (
-          <p className="rounded-lg border border-border bg-background px-4 py-3 text-sm text-muted">This card lists no benefits.</p>
+          <p className="inset px-4 py-3 text-sm text-muted">This card lists no benefits.</p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[760px] text-left text-sm">
-              <thead className="bg-surface-2">
-                <tr className="eyebrow">
-                  <th className="px-3 py-2 font-semibold">Benefit</th>
-                  <th className="px-3 py-2 font-semibold">What the terms say</th>
-                  <th className="px-3 py-2 font-semibold">Conditions</th>
-                  <th className="px-3 py-2 font-semibold">Enrollment</th>
-                  <th className="px-3 py-2 font-semibold">Must be charged to this card</th>
-                  <th className="px-3 py-2 font-semibold">Source</th>
+          <div className="table-wrap">
+            <table className="data-table min-w-[760px]">
+              <thead>
+                <tr>
+                  <th>Benefit</th>
+                  <th>What the terms say</th>
+                  <th>Conditions</th>
+                  <th>Enrollment</th>
+                  <th>Must be charged to this card</th>
+                  <th>Source</th>
                 </tr>
               </thead>
               <tbody>
                 {listing.perks.map(({ perk }, i) => (
-                  <tr key={i} className="border-t border-border align-top">
-                    <td className="px-3 py-2.5 font-medium">{PERK_LABELS[perk.type]}</td>
-                    <td className="px-3 py-2.5">{perk.summary}</td>
-                    <td className="px-3 py-2.5">{perk.conditions ?? <span className="text-muted">Details not verified</span>}</td>
-                    <td className="px-3 py-2.5">
+                  <tr key={i} className="align-top">
+                    <td className="font-medium">{PERK_LABELS[perk.type]}</td>
+                    <td>{perk.summary}</td>
+                    <td>{perk.conditions ?? <span className="text-muted">Details not verified</span>}</td>
+                    <td>
                       {perk.requires_enrollment === null ? <span className="text-muted">Not verified</span> : perk.requires_enrollment ? "Required" : "Not required"}
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td>
                       {perk.requires_charge_to_card === null ? <span className="text-muted">Details not verified</span> : perk.requires_charge_to_card ? "Yes" : "No"}
                     </td>
-                    <td className="px-3 py-2.5">
+                    <td>
                       <Source url={perk.source_url} />
                     </td>
                   </tr>

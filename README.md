@@ -1,7 +1,7 @@
-# CardOpt
+# CardWise
 
-CardOpt helps people in Canada pick the credit cards that fit how they actually
-spend. You upload a card statement (CSV) and CardOpt sorts each purchase into a
+CardWise helps people in Canada pick the credit cards that fit how they actually
+spend. You upload a card statement (CSV) and CardWise sorts each purchase into a
 spending category. It then works out which combination of Canadian cards gives
 you the most value after annual fees, and which card to use for each category.
 It also explains the trade-offs: what each card adds, what you give up by
@@ -28,7 +28,7 @@ the issuer's page before you apply.
 
 To add a card, run `npm run new-card -- <issuer> <card-id>`. It creates a file with every field set to `null`, and you fill in only what the issuer's page states. `npm run card-status` flags cards whose terms haven't been re-checked in 180 days.
 
-CardOpt is an educational tool, not financial advice. Benefit reminders repeat the card's own terms and are for information only.
+CardWise is an educational tool, not financial advice. Benefit reminders repeat the card's own terms and are for information only.
 
 ## Running it on your own machine
 

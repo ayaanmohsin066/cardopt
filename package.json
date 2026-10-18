@@ -1,5 +1,5 @@
 {
-  "name": "cardopt",
+  "name": "cardwise",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "highs": "^1.15.3",
+    "motion": "^12.43.0",
     "next": "16.3.7",
     "papaparse": "^5.7.0",
     "react": "19.2.8",

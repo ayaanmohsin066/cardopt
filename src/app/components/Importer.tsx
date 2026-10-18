@@ -19,6 +19,8 @@ import { CardPicker, MAX_CARDS } from "./CardPicker";
 import { CardStatement } from "./CardStatement";
 import { CombinedSummary } from "./CombinedSummary";
 import { EarnMore } from "./EarnMore";
+import { seriesColor } from "../lib/format";
+import { Reveal } from "./motion";
 import { SectionNav, type SectionLink } from "./SectionNav";
 
 /** Per-card state. Held only in memory; overrides are also saved to localStorage. */
@@ -132,7 +134,7 @@ export function Importer({ catalog }: { catalog: Catalog }) {
           if (!option || !st) return null;
           const r = reports[id];
           return (
-            <div key={id} className="flex flex-col gap-4">
+            <Reveal key={id} className="flex flex-col gap-4">
               <CardStatement
                 card={option}
                 issuerName={issuerName(option.issuer)}
@@ -143,6 +145,7 @@ export function Importer({ catalog }: { catalog: Catalog }) {
                 onOverrides={(o) => setOverrides(id, o)}
                 saveFailed={st.saveFailed}
                 refundMatches={r?.refundMatches}
+                color={seriesColor(st.slot)}
               />
               {r && (
                 <BenefitsPanel
@@ -154,21 +157,25 @@ export function Importer({ catalog }: { catalog: Catalog }) {
                   onOverrides={(o) => setOverrides(id, o)}
                 />
               )}
-            </div>
+            </Reveal>
           );
         })}
       </div>
       {combined.length > 1 && (
-        <div id="combined" className="scroll-mt-32">
-          <CombinedSummary reports={combined} />
-        </div>
+        <Reveal>
+          <div id="combined" className="scroll-mt-32">
+            <CombinedSummary reports={combined} />
+          </div>
+        </Reveal>
       )}
       {showEarnMore && (
-        <div id="earn-more" className="scroll-mt-32">
-          <EarnMore catalog={catalog} reports={combined} version={reports} />
-        </div>
+        <Reveal>
+          <div id="earn-more" className="scroll-mt-32">
+            <EarnMore catalog={catalog} reports={combined} version={reports} />
+          </div>
+        </Reveal>
       )}
-      <p className="border-t border-border pt-4 text-xs leading-relaxed text-muted">
+      <p className="border-t border-border pt-5 text-xs leading-relaxed text-muted">
         Privacy: statements are processed only in this browser. Category corrections you make are
         saved in this browser&apos;s local storage (merchant name and category only) and are never
         sent anywhere.

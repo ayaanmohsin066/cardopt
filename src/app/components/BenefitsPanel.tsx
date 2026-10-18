@@ -59,10 +59,13 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
 
   return (
     <section className="panel" aria-label={`Benefits for ${option.name}`}>
-      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
-        <div className="flex flex-col gap-0.5">
-          <p className="eyebrow">Benefits report</p>
-          <h2 className="text-base font-semibold">{option.name}</h2>
+      <header className="panel-header">
+        <div className="flex min-w-0 items-center gap-3">
+          <span aria-hidden className="h-8 w-1 shrink-0 rounded-full" style={{ background: seriesColor(slot) }} />
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <p className="eyebrow">Benefits report</p>
+            <h2 className="panel-title truncate">{option.name}</h2>
+          </div>
         </div>
         <div className="flex flex-wrap gap-2">
           <span className="tag tabular-nums">
@@ -74,7 +77,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
           <span className="tag tabular-nums">Terms checked {option.last_verified}</span>
         </div>
       </header>
-      <div className="p-5">
+      <div className="panel-body">
       <Tabs
         label={`${option.name} details`}
         tabs={[
@@ -86,7 +89,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
 
               <div className="grid gap-3 sm:grid-cols-2 sm:items-end lg:max-w-3xl">
                 {program && program.redemptions.length > 1 && (
-                  <label className="flex flex-col gap-1.5 text-sm font-medium">
+                  <label className="label">
                     Value points as
                     <select
                       className="field font-normal"
@@ -102,7 +105,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
                     </select>
                   </label>
                 )}
-                <label className="flex flex-col gap-1.5 text-sm font-medium">
+                <label className="label">
                   <span>
                     Card open date <span className="font-normal text-muted">(optional: first-year fee and welcome bonus)</span>
                   </span>
@@ -117,7 +120,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
 
               {unverifiedCount > 0 && (
                 <div
-                  className="flex gap-3 rounded-lg border border-border-strong border-l-4 border-l-foreground bg-surface-2 px-4 py-3.5 text-sm"
+                  className="callout flex-row gap-3 text-sm"
                   role="status"
                 >
                   <svg aria-hidden viewBox="0 0 20 20" className="mt-0.5 h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5">
@@ -126,7 +129,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
                   </svg>
                   <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                     <p className="eyebrow text-foreground">Not yet verified</p>
-                    <p className="text-base font-semibold">
+                    <p className="font-semibold">
                       {unverifiedCount} item{unverifiedCount === 1 ? " is" : "s are"} not yet verified and left out of the totals.
                     </p>
                     <ul className="flex flex-col gap-1">
@@ -146,7 +149,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
               )}
 
               {report.fees.interest > 0 && (
-                <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-lg border border-border border-l-4 border-l-loss px-4 py-3" role="note">
+                <div className="flex flex-wrap items-baseline justify-between gap-2 rounded-inset border border-border border-l-[3px] border-l-loss px-4 py-3" role="note">
                   <div>
                     <p className="text-sm font-semibold">
                       Interest charged: <span className="tabular-nums text-loss">{formatCad(report.fees.interest)}</span>
@@ -160,31 +163,37 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
               )}
 
               <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-background px-5 py-5">
-                <span className="eyebrow">Net value for this period</span>
-                <span className={`text-4xl font-semibold tabular-nums tracking-tight sm:text-5xl ${netTone}`}>
-                  {formatCad(report.net_value)}
-                </span>
-                <span className="text-xs leading-relaxed text-muted">
-                  {report.net_value_excludes.length
+              <StatTile
+                hero
+                label="Net value for this period"
+                value={formatCad(report.net_value)}
+                amount={report.net_value}
+                format={formatCad}
+                tone={netTone}
+                sub={
+                  report.net_value_excludes.length
                     ? `Leaves out: ${report.net_value_excludes.join(", ")}`
-                    : "Rewards + credits − annual fee share − FX fees"}
-                </span>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                    : "Rewards + credits − annual fee share − FX fees"
+                }
+              />
+              <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
                 <StatTile
                   label={isCash ? "Cash back" : "Rewards value"}
                   value={report.rewards_value === null ? NOT_VERIFIED : formatCad(report.rewards_value)}
+                  amount={report.rewards_value}
+                  format={formatCad}
                   sub={
                     isCash
                       ? undefined
                       : `${formatPoints(report.points_total)} points${report.value_is_estimate ? " · estimated value" : ""}`
                   }
                 />
-                <StatTile label="Credits used" value={formatCad(report.credits_total)} />
+                <StatTile label="Credits used" value={formatCad(report.credits_total)} amount={report.credits_total} format={formatCad} />
                 <StatTile
                   label="Annual fee share"
                   value={report.fees.annual_fee_prorated === null ? NOT_VERIFIED : formatCad(report.fees.annual_fee_prorated)}
+                  amount={report.fees.annual_fee_prorated}
+                  format={formatCad}
                   sub={
                     report.fees.annual_fee_full === null
                       ? undefined
@@ -194,6 +203,8 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
                 <StatTile
                   label="Foreign transaction fees"
                   value={report.fx.amount === null ? NOT_VERIFIED : formatCad(report.fx.amount)}
+                  amount={report.fx.amount}
+                  format={formatCad}
                   sub={
                     report.fx.method === "embedded_estimate"
                       ? `Estimate: built into ${formatCad(report.fx.foreign_spend)} of foreign purchases`
@@ -258,7 +269,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
                         note={`${c.method === "posted" ? "Credit posted on the statement" : "Estimated from matching purchases; no credit line posted yet"} · ${formatCad(c.remaining ?? 0)} left this period (uploaded statements only)`}
                       />
                     ) : (
-                      <p key={c.description} className="rounded-lg border border-border bg-background px-4 py-3 text-sm">
+                      <p key={c.description} className="inset px-4 py-3 text-sm">
                         {c.description}: <span className="text-muted">{NOT_VERIFIED}</span>
                       </p>
                     ),
@@ -276,7 +287,7 @@ export function BenefitsPanel({ data, program, settings, onSettings, overrides, 
                   </p>
                   {bonuses.map((b) =>
                     b.status === "unverified" || b.min_spend === null ? (
-                      <p key={b.bonus_index} className="rounded-lg border border-border bg-background px-4 py-3 text-sm">
+                      <p key={b.bonus_index} className="inset px-4 py-3 text-sm">
                         Welcome bonus terms: <span className="text-muted">{NOT_VERIFIED}</span>
                       </p>
                     ) : (

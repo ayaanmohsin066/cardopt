@@ -16,15 +16,15 @@ export function SectionNav({ links }: { links: SectionLink[] }) {
   return (
     <nav
       aria-label="Sections"
-      className="sticky top-14 z-20 -mx-4 border-b border-border bg-background/90 px-4 backdrop-blur sm:-mx-6 sm:px-6"
+      className="sticky top-14 z-20 -mx-4 border-b border-border bg-background px-4 sm:-mx-6 sm:px-6"
     >
-      <ol className="flex gap-1 overflow-x-auto">
+      <ol className="-mx-1 flex gap-1 overflow-x-auto [scrollbar-width:none]">
         {links.map((l, i) => {
           const body = (
             <>
               <span
                 aria-hidden
-                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums ${l.available ? "border-border-strong text-foreground" : "border-border"}`}
+                className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold tabular-nums ${l.available ? "bg-accent text-accent-foreground" : "border border-border"}`}
               >
                 {i + 1}
               </span>
@@ -36,7 +36,7 @@ export function SectionNav({ links }: { links: SectionLink[] }) {
           return (
             <li key={l.id}>
               {l.available ? (
-                <a href={`#${l.id}`} className={`${base} rounded-md text-foreground hover:bg-surface-2`}>
+                <a href={`#${l.id}`} className={`${base} rounded-control text-foreground transition-colors duration-(--duration-fast) hover:bg-surface-2`}>
                   {body}
                 </a>
               ) : (

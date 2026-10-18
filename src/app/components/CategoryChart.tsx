@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { CategoryBenefit } from "@/engine";
 import { CATEGORY_LABELS, formatCad, formatPoints } from "../lib/format";
+import { useNarrow } from "../lib/use-narrow";
 
 interface Props {
   rows: CategoryBenefit[];
@@ -22,6 +23,7 @@ type Mode = "value" | "points";
  */
 export function CategoryChart({ rows, hasValue, color, showPoints = true }: Props) {
   const [mode, setMode] = useState<Mode>(hasValue ? "value" : "points");
+  const narrow = useNarrow();
   const active: Mode = hasValue ? mode : "points";
   const fmt = active === "value" ? formatCad : formatPoints;
   const data = rows
@@ -38,14 +40,14 @@ export function CategoryChart({ rows, hasValue, color, showPoints = true }: Prop
           {active === "value" ? "Rewards value by category" : "Points by category"}
         </h4>
         {hasValue && showPoints && (
-          <div role="radiogroup" aria-label="Show" className="flex gap-0.5 rounded-lg border border-border bg-surface-2 p-0.5 text-xs font-medium">
+          <div role="radiogroup" aria-label="Show" className="segmented">
             {(["value", "points"] as const).map((m) => (
               <button
                 key={m}
                 type="button"
                 role="radio"
                 aria-checked={active === m}
-                className={`rounded-md px-3 py-1 ${active === m ? "bg-surface text-foreground shadow-sm ring-1 ring-border" : "text-muted hover:text-foreground"}`}
+                className={`rounded-[calc(var(--radius-control)-2px)] px-3 py-1 transition-colors duration-(--duration-fast) ${active === m ? "bg-surface text-foreground shadow-panel ring-1 ring-border" : "text-muted hover:text-foreground"}`}
                 onClick={() => setMode(m)}
               >
                 {m === "value" ? "Dollars" : "Points"}
@@ -56,10 +58,11 @@ export function CategoryChart({ rows, hasValue, color, showPoints = true }: Prop
       </div>
       <div style={{ height }}>
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ top: 4, right: 72, bottom: 4, left: 8 }} barCategoryGap={8}>
+          <BarChart data={data} layout="vertical" margin={{ top: 4, right: narrow ? 56 : 72, bottom: 4, left: 0 }} barCategoryGap={8}>
             <CartesianGrid horizontal={false} stroke="var(--chart-grid)" strokeWidth={1} />
             <XAxis
               type="number"
+              tickCount={narrow ? 3 : 5}
               tickFormatter={(v: number) => fmt(v)}
               stroke="var(--chart-axis)"
               tick={{ fill: "var(--chart-ink-muted)", fontSize: 12 }}
@@ -68,7 +71,7 @@ export function CategoryChart({ rows, hasValue, color, showPoints = true }: Prop
             <YAxis
               type="category"
               dataKey="name"
-              width={120}
+              width={narrow ? 92 : 120}
               stroke="var(--chart-axis)"
               tick={{ fill: "var(--muted)", fontSize: 12 }}
               tickLine={false}
@@ -79,7 +82,7 @@ export function CategoryChart({ rows, hasValue, color, showPoints = true }: Prop
                 const p = payload?.[0]?.payload as (typeof data)[number] | undefined;
                 if (!on || !p) return null;
                 return (
-                  <div className="rounded-md border border-border bg-surface px-3 py-2 text-xs shadow-sm">
+                  <div className="rounded-control border border-border bg-surface px-3 py-2 text-xs shadow-raised">
                     <div className="text-sm font-semibold">{fmt(p.amount)}</div>
                     <div className="text-muted">{p.name}</div>
                     <div className="mt-1 text-muted">Net spend {formatCad(p.row.net_spend)}</div>
@@ -104,26 +107,26 @@ export function CategoryChart({ rows, hasValue, color, showPoints = true }: Prop
         </ResponsiveContainer>
       </div>
       <details className="text-sm">
-        <summary className="w-fit cursor-pointer rounded-md text-muted hover:text-foreground">Show as table</summary>
-        <div className="mt-3 overflow-x-auto rounded-lg border border-border">
-        <table className="w-full min-w-[480px] text-left text-sm">
-          <thead className="bg-surface-2">
-            <tr className="eyebrow">
-              <th className="px-3 py-2 font-semibold">Category</th>
-              <th className="px-3 py-2 text-right font-semibold">Net spend</th>
-              <th className="px-3 py-2 text-right font-semibold">Points</th>
-              <th className="px-3 py-2 text-right font-semibold">Value</th>
-              <th className="px-3 py-2 text-right font-semibold">Not verified</th>
+        <summary className="disclosure">Show as table</summary>
+        <div className="mt-3 table-wrap">
+        <table className="data-table min-w-[480px]">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th className="num">Net spend</th>
+              <th className="num">Points</th>
+              <th className="num">Value</th>
+              <th className="num">Not verified</th>
             </tr>
           </thead>
-          <tbody className="tabular-nums">
+          <tbody>
             {rows.map((r) => (
-              <tr key={r.category} className="border-t border-border">
-                <td className="px-3 py-2">{CATEGORY_LABELS[r.category]}</td>
-                <td className="px-3 py-2 text-right">{formatCad(r.net_spend)}</td>
-                <td className="px-3 py-2 text-right">{formatPoints(r.points)}</td>
-                <td className="px-3 py-2 text-right">{r.value === null ? "Not yet verified" : formatCad(r.value)}</td>
-                <td className="px-3 py-2 text-right">{r.unverified_count ? `${r.unverified_count} (${formatCad(r.unverified_amount)})` : "—"}</td>
+              <tr key={r.category}>
+                <td>{CATEGORY_LABELS[r.category]}</td>
+                <td className="num">{formatCad(r.net_spend)}</td>
+                <td className="num">{formatPoints(r.points)}</td>
+                <td className="num">{r.value === null ? "Not yet verified" : formatCad(r.value)}</td>
+                <td className="num">{r.unverified_count ? `${r.unverified_count} (${formatCad(r.unverified_amount)})` : "—"}</td>
               </tr>
             ))}
           </tbody>

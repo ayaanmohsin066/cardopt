@@ -77,17 +77,17 @@ export function ReconcileBox({ card, program, redemptionMethod, isCash, items, o
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border border-border bg-background p-5">
+    <div className="flex flex-col gap-4 inset p-5">
       <div className="flex flex-col gap-1">
       <p className="eyebrow">Statement check</p>
       <h4 className="section-title">Check against your statement</h4>
       <p className="max-w-2xl text-xs leading-relaxed text-muted">
         Type the {isCash ? "cash back" : "points"} your statement says you earned for this period. If it
-        doesn&apos;t match, CardOpt looks for unsure categories that would explain the difference.
+        doesn&apos;t match, CardWise looks for unsure categories that would explain the difference.
       </p>
       </div>
       <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1.5 text-sm font-medium">
+        <label className="label">
           {isCash ? "Cash back on statement ($)" : "Points on statement"}
           <input
             inputMode="decimal"
@@ -111,7 +111,7 @@ export function ReconcileBox({ card, program, redemptionMethod, isCash, items, o
           {result.status === "matched" ? (
             <p>
               {result.rounding_mode
-                ? `Matches exactly (${fmt(result.estimated_points)}) when ${result.rounding_mode === "per_transaction" ? "each purchase is rounded to a whole point" : "only the statement total is rounded"}. CardOpt will remember this for this card.`
+                ? `Matches exactly (${fmt(result.estimated_points)}) when ${result.rounding_mode === "per_transaction" ? "each purchase is rounded to a whole point" : "only the statement total is rounded"}. CardWise will remember this for this card.`
                 : `Matches the estimate (${fmt(result.estimated_points)}) within rounding, though neither rounding method matches exactly.`}
             </p>
           ) : (
@@ -125,7 +125,7 @@ export function ReconcileBox({ card, program, redemptionMethod, isCash, items, o
                   <p className="text-muted">These category changes would explain {result.status === "explained" ? "it" : "part of it"}:</p>
                   <ul className="flex flex-col gap-2">
                     {result.suggestions.map((s) => (
-                      <li key={s.transaction_id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-surface px-3 py-2">
+                      <li key={s.transaction_id} className="flex flex-wrap items-center justify-between gap-2 inset bg-surface px-3 py-2.5">
                         <span>
                           Line {s.statement_line}, {s.date}: {s.description} ({formatCad(s.amount_cad)}):{" "}
                           {CATEGORY_LABELS[s.from]} → <strong>{CATEGORY_LABELS[s.to]}</strong>{" "}

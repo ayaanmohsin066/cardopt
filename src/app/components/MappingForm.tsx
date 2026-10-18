@@ -46,7 +46,7 @@ export function draftToMapping(d: MappingDraft): ColumnMapping | null {
   };
 }
 
-const field = "w-full rounded-md border border-border bg-surface px-2 py-1.5 text-sm text-foreground";
+const field = "field";
 
 interface Props {
   columns: string[];
@@ -58,10 +58,10 @@ interface Props {
 
 export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props) {
   const column = (label: string, key: keyof MappingDraft, optional = false) => (
-    <label className="flex flex-col gap-1 text-sm">
+    <label className="label">
       <span>
         {label}
-        {optional && <span className="text-muted"> (optional)</span>}
+        {optional && <span className="font-normal text-muted"> (optional)</span>}
       </span>
       <select className={field} value={draft[key]} onChange={(e) => onDraft({ ...draft, [key]: e.target.value })}>
         <option value="">{optional ? "None" : "Choose a column"}</option>
@@ -76,8 +76,9 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
 
   return (
     <div className="flex flex-col gap-4">
-      <label className="flex items-center gap-2 text-sm">
+      <label className="flex w-fit items-center gap-2 text-sm">
         <input
+          className="check"
           type="checkbox"
           checked={format.has_header}
           onChange={(e) => onFormat({ ...format, has_header: e.target.checked })}
@@ -88,7 +89,7 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {column("Date", "date")}
         {column("Description", "description")}
-        <label className="flex flex-col gap-1 text-sm">
+        <label className="label">
           Date format
           <select
             className={field}
@@ -105,10 +106,11 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
       </div>
 
       <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1 text-sm font-medium">Amounts</legend>
+        <legend className="mb-2 text-sm font-medium">Amounts</legend>
         <div className="flex flex-wrap gap-4 text-sm">
           <label className="flex items-center gap-2">
             <input
+              className="check"
               type="radio"
               checked={draft.amountMode === "single"}
               onChange={() => onDraft({ ...draft, amountMode: "single" })}
@@ -117,6 +119,7 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
           </label>
           <label className="flex items-center gap-2">
             <input
+              className="check"
               type="radio"
               checked={draft.amountMode === "split"}
               onChange={() => onDraft({ ...draft, amountMode: "split" })}
@@ -128,7 +131,7 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
           {draft.amountMode === "single" ? (
             <>
               {column("Amount", "amount")}
-              <label className="flex flex-col gap-1 text-sm">
+              <label className="label">
                 Purchases are shown as
                 <select
                   className={field}
@@ -148,7 +151,7 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
               {column("Credit (refunds, payments)", "credit")}
             </>
           )}
-          <label className="flex flex-col gap-1 text-sm">
+          <label className="label">
             Decimal separator
             <select
               className={field}
@@ -165,10 +168,10 @@ export function MappingForm({ columns, draft, format, onDraft, onFormat }: Props
       </fieldset>
 
       <details className="text-sm">
-        <summary className="cursor-pointer text-muted">Foreign-currency columns (optional)</summary>
+        <summary className="disclosure">Foreign-currency columns (optional)</summary>
         <p className="mt-2 text-muted">
           If your export has any of these, foreign purchases are detected reliably. Otherwise
-          CardOpt guesses from the description and marks the guess as unsure.
+          CardWise guesses from the description and marks the guess as unsure.
         </p>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           {column("Currency", "currency", true)}

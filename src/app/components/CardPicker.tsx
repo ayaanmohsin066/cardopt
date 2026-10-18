@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { Catalog } from "../lib/catalog";
+import { DURATION, EASE } from "../lib/motion-tokens";
 
 export const MAX_CARDS = 3;
 
@@ -23,7 +25,7 @@ function CardGlyph() {
 
 function Select({ label, children, ...props }: { label: string } & React.ComponentProps<"select">) {
   return (
-    <label className="flex flex-col gap-1.5 text-sm font-medium">
+    <label className="label">
       {label}
       <select className="field font-normal" {...props}>
         {children}
@@ -34,9 +36,9 @@ function Select({ label, children, ...props }: { label: string } & React.Compone
 
 function Header({ children }: { children?: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
+    <div className="panel-header">
       <div className="flex flex-col gap-0.5">
-        <h2 className="text-base font-semibold">Your cards</h2>
+        <h2 className="panel-title">Your cards</h2>
         <p className="text-sm text-muted">Pick up to {MAX_CARDS} cards, then import a statement for each.</p>
       </div>
       {children}
@@ -51,19 +53,20 @@ export function CardPicker({ catalog, selected, onAdd, onRemove }: Props) {
   const issuerCards = catalog.cards.filter((c) => c.issuer === issuer && !selected.includes(c.id));
   const byId = new Map(catalog.cards.map((c) => [c.id, c]));
   const issuerName = (id: string) => catalog.issuers.find((i) => i.id === id)?.name ?? id;
+  const reduce = useReducedMotion();
 
   if (catalog.empty) {
     return (
       <section id="cards" className="panel scroll-mt-32">
         <Header />
-        <div className="flex flex-col items-center gap-2 px-5 py-10 text-center">
-          <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-surface-2 text-muted">
-            <CardGlyph />
-          </span>
-          <p className="text-sm font-medium">No verified cards yet</p>
-          <p className="max-w-sm text-sm text-muted">
-            Cards are added once their terms have been checked against the issuer&apos;s own website.
-          </p>
+        <div className="panel-body">
+          <div className="empty py-10">
+            <span className="flex h-10 w-10 items-center justify-center rounded-inset bg-surface-2 text-muted ring-1 ring-border">
+              <CardGlyph />
+            </span>
+            <p className="font-medium text-foreground">No verified cards yet</p>
+            <p className="max-w-sm">Cards are added once their terms have been checked against the issuer&apos;s own website.</p>
+          </div>
         </div>
       </section>
     );
@@ -78,15 +81,15 @@ export function CardPicker({ catalog, selected, onAdd, onRemove }: Props) {
           </span>
           <span className="flex gap-1">
             {Array.from({ length: MAX_CARDS }, (_, i) => (
-              <span key={i} className={`h-1.5 w-5 rounded-full ${i < selected.length ? "bg-accent" : "bg-border"}`} />
+              <span key={i} className={`h-1.5 w-5 rounded-full transition-colors duration-(--duration-base) ${i < selected.length ? "bg-accent" : "bg-border"}`} />
             ))}
           </span>
         </div>
       </Header>
 
-      <div className="flex flex-col gap-5 p-5">
+      <div className="panel-body gap-5">
         {catalog.fixtures_enabled && (
-          <p className="rounded-md border border-review-border bg-review px-3 py-2 text-xs">
+          <p className="rounded-inset border border-review-border/70 bg-review/70 px-3 py-2 text-xs leading-relaxed">
             Development mode: FAKE test-fixture cards are listed. They never appear in production builds.
           </p>
         )}
@@ -131,17 +134,30 @@ export function CardPicker({ catalog, selected, onAdd, onRemove }: Props) {
         {full && <p className="-mt-2 text-sm text-muted">You&apos;ve added the maximum of {MAX_CARDS} cards.</p>}
 
         {selected.length === 0 ? (
-          <p className="rounded-lg border border-dashed border-border-strong px-4 py-6 text-center text-sm text-muted">
-            No cards added yet. Choose an issuer and a card to begin.
-          </p>
+          <div className="empty">
+            <span className="flex h-9 w-9 items-center justify-center rounded-inset bg-surface-2 text-muted ring-1 ring-border">
+              <CardGlyph />
+            </span>
+            <p>No cards added yet. Choose an issuer and a card to begin.</p>
+          </div>
         ) : (
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <AnimatePresence initial={false}>
             {selected.map((id) => {
               const card = byId.get(id);
               const name = card?.name ?? id;
               return (
-                <li key={id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-surface text-muted ring-1 ring-border">
+                <motion.li
+                  key={id}
+                  layout={reduce ? false : "position"}
+                  initial={reduce ? false : { opacity: 0, scale: 0.97 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={reduce ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, scale: 0.97 }}
+                  whileHover={reduce ? undefined : { y: -1 }}
+                  transition={{ duration: DURATION.base, ease: EASE.standard }}
+                  className="inset flex items-center gap-3 px-3 py-2.5 shadow-panel"
+                >
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-surface text-muted ring-1 ring-border">
                     <CardGlyph />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col">
@@ -155,7 +171,7 @@ export function CardPicker({ catalog, selected, onAdd, onRemove }: Props) {
                   </span>
                   <button
                     type="button"
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted hover:bg-surface-2 hover:text-danger"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-control text-muted transition-colors duration-(--duration-fast) hover:bg-surface-2 hover:text-danger"
                     aria-label={`Remove ${name}`}
                     onClick={() => onRemove(id)}
                   >
@@ -163,9 +179,10 @@ export function CardPicker({ catalog, selected, onAdd, onRemove }: Props) {
                       <path d="m4 4 8 8M12 4l-8 8" />
                     </svg>
                   </button>
-                </li>
+                </motion.li>
               );
             })}
+            </AnimatePresence>
           </ul>
         )}
       </div>

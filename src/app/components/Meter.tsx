@@ -1,3 +1,7 @@
+"use client";
+
+import { Bar } from "./motion";
+
 interface Props {
   label: string;
   used: number;
@@ -9,9 +13,9 @@ interface Props {
 
 /** A single ratio against a limit: same-hue track, accent fill, value always in text. */
 export function Meter({ label, used, limit, note, format }: Props) {
-  const pct = limit > 0 ? Math.min(100, Math.max(0, (used / limit) * 100)) : 0;
+  const fraction = limit > 0 ? used / limit : 0;
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-border bg-background px-4 py-3">
+    <div className="inset flex flex-col gap-2.5 px-4 py-3.5">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 text-sm">
         <span className="font-medium">{label}</span>
         <span className="tabular-nums">
@@ -28,7 +32,7 @@ export function Meter({ label, used, limit, note, format }: Props) {
         aria-valuetext={`${format(used)} of ${format(limit)}`}
         className="h-1.5 w-full overflow-hidden rounded-full bg-meter-track"
       >
-        <div className="h-full rounded-full bg-meter-fill" style={{ width: `${pct}%` }} />
+        <Bar fraction={fraction} className="bg-meter-fill" />
       </div>
       {note && <span className="text-xs leading-relaxed text-muted">{note}</span>}
     </div>

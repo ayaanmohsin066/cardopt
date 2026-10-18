@@ -1,6 +1,6 @@
 @AGENTS.md
 
-# CardOpt
+# CardWise
 
 A Canadian credit card optimizer, built with Next.js (App Router), TypeScript,
 Tailwind and Recharts, and tested with Vitest. It is a redesign of the original
