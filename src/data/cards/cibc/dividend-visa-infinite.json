@@ -1,0 +1,24 @@
+{
+  "id": "dividend-visa-infinite",
+  "name": "CIBC Dividend Visa Infinite Card",
+  "issuer": "cibc",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 120,
+  "first_year_fee": 0,
+  "fx_fee_pct": 2.5,
+  "base_rate": 1,
+  "caps": null,
+  "earn_rules": [
+    { "categories": ["gas", "groceries"], "rate": 4, "cap_id": "none", "after_cap_rate": null },
+    { "categories": ["transit", "dining", "recurring_bills"], "rate": 2, "cap_id": "none", "after_cap_rate": null }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html",
+  "last_verified": "2026-10-18"
+}
