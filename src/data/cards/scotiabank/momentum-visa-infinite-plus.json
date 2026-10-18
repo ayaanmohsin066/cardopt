@@ -1,0 +1,27 @@
+{
+  "id": "momentum-visa-infinite-plus",
+  "name": "Scotia Momentum Visa Infinite+ Card",
+  "issuer": "scotiabank",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 120,
+  "first_year_fee": 0,
+  "fx_fee_pct": 2.5,
+  "base_rate": 1,
+  "caps": [
+    { "id": "groceries-recurring-cap", "amount": 25000, "period": "year" },
+    { "id": "gas-transit-cap", "amount": 25000, "period": "year" }
+  ],
+  "earn_rules": [
+    { "categories": ["groceries", "recurring_bills"], "rate": 4, "cap_id": "groceries-recurring-cap", "after_cap_rate": 1 },
+    { "categories": ["gas", "transit"], "rate": 2, "cap_id": "gas-transit-cap", "after_cap_rate": 1 }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.scotiabank.com/ca/en/personal/credit-cards/visa/momentum-infinite-card.html",
+  "last_verified": "2026-10-18"
+}
