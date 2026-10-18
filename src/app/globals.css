@@ -23,7 +23,7 @@
   --review: #fef3c7;
   --review-border: #f59e0b;
   --danger: #b42318;
-  --shadow: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow: 0 1px 2px rgb(16 24 40 / 0.04), 0 10px 28px -12px rgb(16 41 76 / 0.12);
   /* Charts: validated categorical slots (dataviz reference palette), chrome. */
   --series-1: #2a78d6;
   --series-2: #eb6834;
@@ -53,7 +53,7 @@
     --review: #422006;
     --review-border: #d97706;
     --danger: #f97066;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -14px rgb(0 0 0 / 0.55);
     --series-1: #3987e5;
     --series-2: #d95926;
     --series-3: #199e70;
@@ -82,7 +82,7 @@
   --review: #422006;
   --review-border: #d97706;
   --danger: #f97066;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 12px 32px -14px rgb(0 0 0 / 0.55);
   --series-1: #3987e5;
   --series-2: #d95926;
   --series-3: #199e70;
@@ -133,7 +133,11 @@
     text-rendering: optimizeLegibility;
   }
 
-  h1,
+  h1 {
+    letter-spacing: -0.025em;
+    line-height: 1.08;
+  }
+
   h2,
   h3,
   h4 {
@@ -196,7 +200,7 @@
     height: 2.5rem;
     justify-content: center;
     padding: 0 1rem;
-    transition: background-color 120ms, border-color 120ms, opacity 120ms;
+    transition: background-color 200ms, border-color 200ms, opacity 200ms, transform 150ms;
     white-space: nowrap;
   }
 
@@ -204,9 +208,23 @@
     background: var(--surface-2);
   }
 
+  .btn:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
   .btn:disabled {
     cursor: not-allowed;
     opacity: 0.45;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn {
+      transition: background-color 200ms, border-color 200ms, opacity 200ms;
+    }
+
+    .btn:active:not(:disabled) {
+      transform: none;
+    }
   }
 
   .btn-primary {
@@ -229,7 +247,7 @@
     font-size: 0.875rem;
     height: 2.5rem;
     padding: 0 0.75rem;
-    transition: border-color 120ms;
+    transition: border-color 200ms;
     width: 100%;
   }
 
