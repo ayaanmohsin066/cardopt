@@ -11,12 +11,6 @@ All amounts are in Canadian dollars.
 
 > **Status:** redesign in progress. Statement import, categorization, the benefits report, the statement check, "Earn more" recommendations, redemption values and benefit reminders work. The card catalogue is waiting for verified card terms.
 
-## Built on CardOpt by @srinihal007
-
-This project is a redesign of [CardOpt](https://github.com/srinihal007/cardopt) by
-**@srinihal007**, a Python/Streamlit credit card portfolio optimizer. It is used
-with his permission. The original code is kept in [`legacy/`](legacy/), and
-[`docs/cardopt-audit.md`](docs/cardopt-audit.md) documents how its model works.
 
 ## Privacy
 
