@@ -1,0 +1,27 @@
+{
+  "id": "world-elite-mastercard",
+  "name": "National Bank World Elite Mastercard",
+  "issuer": "national-bank",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "points",
+  "program_id": "a-la-carte-rewards",
+  "annual_fee": 150,
+  "first_year_fee": null,
+  "fx_fee_pct": 2.5,
+  "base_rate": 1,
+  "caps": [
+    { "id": "grocery-dining-cap", "amount": 2500, "period": "month" }
+  ],
+  "earn_rules": [
+    { "categories": ["groceries", "dining"], "rate": 5, "cap_id": "grocery-dining-cap", "after_cap_rate": 2 },
+    { "categories": ["gas"], "rate": 2, "cap_id": "none", "after_cap_rate": null },
+    { "categories": ["recurring_bills"], "rate": 2, "cap_id": "none", "after_cap_rate": null }
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "source_url": "https://www.nbc.ca/personal/mastercard-credit-cards/world-elite.html",
+  "last_verified": "2026-10-18"
+}
