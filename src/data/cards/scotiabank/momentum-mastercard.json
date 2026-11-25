@@ -1,0 +1,25 @@
+{
+  "id": "momentum-mastercard",
+  "name": "Scotia Momentum Mastercard",
+  "issuer": "scotiabank",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": null,
+  "earn_rules": [
+    {"categories": ["gas", "groceries", "drugstore"], "rate": 1, "cap_id": null, "after_cap_rate": null},
+    {"categories": ["recurring_bills"], "rate": 1, "cap_id": null, "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.scotiabank.com/ca/en/personal/credit-cards/mastercard/momentum-card.html",
+  "last_verified": "2026-11-25"
+}

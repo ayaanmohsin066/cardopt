@@ -1,0 +1,25 @@
+{
+  "id": "cash-back-mastercard",
+  "name": "RBC Cash Back Mastercard",
+  "issuer": "rbc",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": [],
+  "earn_rules": [
+    {"categories": ["groceries"], "rate": 2, "cap_id": "none", "after_cap_rate": null},
+    {"categories": ["gas", "transit"], "rate": 1, "cap_id": "none", "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.rbcroyalbank.com/credit-cards/cash-back/rbc-cashback-mastercard.html",
+  "last_verified": "2026-11-25"
+}
