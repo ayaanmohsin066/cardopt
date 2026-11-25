@@ -216,7 +216,7 @@ export interface ChangeOptions {
   onProgress?: (done: number, total: number) => void;
   /**
    * Skip catalogue cards that can't beat the current cards (see pruneCatalogue).
-   * Default false: 100 cards × 3 owned runs in under a second (tests/engine/benchmark.test.ts).
+   * Default false: 100 cards × 3 owned runs in a few seconds at most (tests/engine/benchmark.test.ts).
    */
   prune?: boolean;
 }

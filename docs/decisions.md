@@ -234,12 +234,58 @@ accepted as written; 2 and 4 were accepted with the changes noted.
 14. **Scale.** "Change a card" with 100 synthetic cards and 3 owned cards (300
     candidate sets, ongoing and first year) takes about 0.6 s with 120
     transactions and 0.8 s with 300, in Node (`tests/engine/benchmark.test.ts`).
+    Timing depends on hardware: on a 4 vCPU cloud sandbox (2026-11-25) it was
+    about 1.6–1.9 s.
     - That's well under the ~5 s threshold, so **pruning is off by default**.
     - `pruneCatalogue` exists for a larger catalogue. It keeps any card that
       beats the current best rate in a category with spend, has a welcome bonus
       or credit, or has a lower annual fee than the priciest current card.
     - Tested on three synthetic seeds: pruning never drops the best ongoing or
       first-year result.
+
+## Catalogue MILP: best set of cards (decided 2026-11-25)
+
+1. **Model.** `solveCatalogue` (`src/engine/catalogue.ts`) chooses which cards
+   to hold and routes spend across them in one mixed-integer linear program:
+   - x[card, cell, tier] ≥ 0, the same variables, demand rows and cap rows as
+     `solveRouting` (shared through `routingModel`);
+   - y[card] ∈ {0, 1}, one per usable card;
+   - linking rows Σ_tier x[card, cell, ·] ≤ net(cell) · y[card], one per
+     (card, cell), so spend only goes to a held card;
+   - objective Σ value · x − Σ annual_fee · (months / 12) · y. The fee is a
+     real decision (a fixed charge), not a constant subtracted afterwards;
+   - y[card] ≤ 0 for each card the applicant is **verified** ineligible for;
+   - Σ y ≤ `maxCards` (default 3, matching the card picker).
+2. **It's a MILP, not an LP.** A fee only constrains anything when it's tied to
+   a hold-or-not decision, which takes a binary. Describe it as a
+   mixed-integer linear program. `solveRouting` stays a pure LP.
+3. **Eligibility** is the issuer's income minimum, personal OR household
+   (`eligibility` in the card schema). `"none"` means that path doesn't exist,
+   and `null` means unverified. A card is ineligible only when every path is
+   verified and fails for the stated income. Otherwise it's allowed, and listed
+   in `eligibility_unverified`. Income stays in React state and the worker
+   request. It is never persisted or logged (tested in `tests/rules/`).
+4. **Ongoing only.** No welcome bonuses: bonus timing needs the per-case
+   enumeration that "Change a card" already does.
+5. **Values shown come from replay.** `bestWallet` replays the transactions
+   through the chosen set with `evaluateSet`. The MILP objective is an upper
+   bound and is never displayed (a rules test checks `src/app` never reads
+   `upper_bound`).
+6. **"Card-category variables"** means distinct (card, category) pairs with at
+   least one x variable (`model.pairs`). Raw variable counts are larger and
+   are reported separately (`model.x_vars`).
+7. **Ranged rows.** HiGHS 1.15's LP-text reader misreads `l <= expr <= u` (it
+   keeps only the upper side). `toLpText` writes equalities as `= v` and
+   other ranges as two one-sided rows. Before this, every demand row was
+   effectively `<= net`, so spend whose best value was negative (foreign spend
+   under an FX fee) could go unrouted. There is a regression test in
+   `tests/engine/optimize.test.ts`.
+8. **Scale.** The best 3 of 100 synthetic cards (1,200 pairs, 3,846 x
+   variables) solves in about 0.6 s in Node on a 4 vCPU cloud sandbox
+   (`tests/engine/benchmark.test.ts`).
+9. **Claims gate.** `npm run test:claims` (`tests/claims/`, excluded from
+   `npm test`) checks the project's public claims against real data. It fails
+   until that data exists. See `docs/claims.md`.
 
 ## Redemption values, perks and card entry (Phase 5, reviewed 2026-09-30)
 

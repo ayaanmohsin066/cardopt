@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:claims": "vitest run --config vitest.claims.config.mts",
     "typecheck": "next typegen && tsc --noEmit",
     "predev": "node scripts/copy-solver-wasm.mjs",
     "prebuild": "node scripts/copy-solver-wasm.mjs",
