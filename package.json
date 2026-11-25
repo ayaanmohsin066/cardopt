@@ -16,7 +16,8 @@
     "new-card": "tsx scripts/new-card.ts",
     "card-status": "tsx scripts/card-status.ts",
     "new-program": "tsx scripts/new-program.ts",
-    "program-status": "tsx scripts/program-status.ts"
+    "program-status": "tsx scripts/program-status.ts",
+    "label-template": "tsx scripts/label-template.ts"
   },
   "dependencies": {
     "highs": "^1.15.3",

@@ -62,6 +62,7 @@ Then, for each bank:
 ### 5. A hand-labelled transaction set
 
 - **File:** `tests/fixtures/labelled/transactions.csv`, with columns `description,label,split`.
+- **Start from your own exports:** `npm run label-template -- "<description column>" <export.csv> ...` writes a gitignored `to-label.csv` with one row per merchant, the split already fixed and every label empty.
 - **Size:** at least 300 rows, with at least 100 rows where `split=test`.
 - **Labels:** one of the 12 categories in `src/engine/categories.ts`, assigned by a person without looking at the categorizer's output.
 - **Privacy:** descriptions only. No amounts, dates, card numbers or names, because the file goes into a public repo.

@@ -42,3 +42,4 @@ next-env.d.ts
 
 # solver binary, copied from node_modules/highs by scripts/copy-solver-wasm.mjs
 /public/solver/
+/tests/fixtures/labelled/to-label.csv
