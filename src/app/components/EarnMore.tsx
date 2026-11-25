@@ -353,10 +353,14 @@ export function EarnMore({ catalog, reports, version }: Props) {
                     {shown.map((c) => (
                       <tr key={`${c.remove}>${c.add}`}>
                         <td className="font-medium">{changeLabel(c)}</td>
-                        <td className="num"><Signed value={c.first_year.gain_annual} /></td>
+                        <td className="num">
+                          {c.first_year ? <Signed value={c.first_year.gain_annual} /> : <span className="text-muted">not yet verified</span>}
+                        </td>
                         <td className="num"><Signed value={c.ongoing.gain_annual} /></td>
                         <td className="text-xs text-muted">
-                          {c.first_year.bonus_value > 0
+                          {!c.first_year
+                            ? "First year not shown: its welcome bonus or first-year fee is not yet verified"
+                            : c.first_year.bonus_value > 0
                             ? `Includes ${formatCad(c.first_year.bonus_value)} welcome bonus${c.first_year.bonus_projected ? " (spend requirement projected from your pace)" : ""}`
                             : c.first_year.bonus_pursued
                               ? "Welcome bonus not reached with this spending"

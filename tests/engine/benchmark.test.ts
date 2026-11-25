@@ -5,8 +5,9 @@ import { getSolver } from "../helpers/solver";
 import { syntheticCatalogue, syntheticOwned } from "../helpers/synthetic";
 
 const top = (r: ReturnType<typeof changeACard>, key: "ongoing" | "first_year") => {
-  const best = [...r.changes].sort((a, b) => b[key].gain_annual - a[key].gain_annual)[0];
-  return best && { remove: best.remove, add: best.add, gain: Math.round(best[key].gain_annual * 100) / 100 };
+  const gain = (c: (typeof r.changes)[number]) => c[key]?.gain_annual ?? -Infinity;
+  const best = [...r.changes].sort((a, b) => gain(b) - gain(a))[0];
+  return best && { remove: best.remove, add: best.add, gain: Math.round(gain(best) * 100) / 100 };
 };
 
 describe("change a card: benchmark", () => {

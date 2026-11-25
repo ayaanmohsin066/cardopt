@@ -177,6 +177,7 @@ export interface CardChange {
    * total_gain_annual: versus how the cards were actually used (routing gain + gain_annual).
    */
   ongoing: { total_annual: number; gain_annual: number; total_gain_annual: number; policy: CategoryPolicy[]; credit_rules: CreditRule[] };
+  /** null when the first-year case can't be evaluated (e.g. the welcome bonus or first-year fee is unverified). */
   first_year: {
     total_annual: number;
     gain_annual: number;
@@ -185,7 +186,7 @@ export interface CardChange {
     bonus_pursued: boolean;
     /** The bonus spend requirement was checked against a pace (data shorter than the window). */
     bonus_projected: boolean;
-  };
+  } | null;
 }
 
 export interface ChangeResult {
@@ -264,10 +265,11 @@ export function changeACard(
         excluded.set(x.card_id, { ...x, reasons: [...new Set([...(prev?.reasons ?? []), ...x.reasons])] });
       }
     }
-    if (!ongoing.evaluation || !firstYear.evaluation) return;
+    // Exclusion is per mode (docs/decisions.md, Earn more rule 10): an ongoing
+    // result stands even when first-year terms (e.g. the welcome bonus) are unverified.
+    if (!ongoing.evaluation) return;
     const fy = firstYear.evaluation;
     const og = ongoing.evaluation.score.total_annual - baseline_annual;
-    const fg = fy.score.total_annual - baseline_annual;
     changes.push({
       action: s.action,
       remove: s.remove,
@@ -280,10 +282,10 @@ export function changeACard(
         policy: ongoing.evaluation.policy,
         credit_rules: ongoing.evaluation.credit_rules,
       },
-      first_year: {
+      first_year: fy && {
         total_annual: fy.score.total_annual,
-        gain_annual: fg,
-        total_gain_annual: routing_gain_annual + fg,
+        gain_annual: fy.score.total_annual - baseline_annual,
+        total_gain_annual: routing_gain_annual + fy.score.total_annual - baseline_annual,
         bonus_value: fy.score.bonus_value,
         bonus_pursued: fy.pursued.length > 0,
         bonus_projected: fy.projected_bonus,

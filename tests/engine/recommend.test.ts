@@ -102,7 +102,7 @@ describe("changeACard", () => {
     expect(r.baseline_annual).toBeCloseTo(96, 6);
     const gain = (remove: string | null, add: string) => {
       const c = r.changes.find((x) => x.remove === remove && x.add === add)!;
-      return [Math.round(c.ongoing.gain_annual * 100) / 100, Math.round(c.first_year.gain_annual * 100) / 100];
+      return [Math.round(c.ongoing.gain_annual * 100) / 100, Math.round(c.first_year!.gain_annual * 100) / 100];
     };
     // Shared-cap card: groceries 4%, no fee: $16/month -> +$96/year.
     expect(gain(null, "fake-shared-cap")).toEqual([96, 96]);
@@ -120,6 +120,22 @@ describe("changeACard", () => {
     expect(r.changes.every((c) => Math.abs(c.ongoing.total_gain_annual - c.ongoing.gain_annual) < 1e-9)).toBe(true);
     const pts = r.changes.find((x) => x.remove === null && x.add === "fake-points")!;
     expect(pts.first_year).toMatchObject({ bonus_pursued: true, bonus_projected: true, bonus_value: 100 });
+  });
+
+  it("keeps an ongoing change when the added card's welcome bonus is unverified (first year is null)", async () => {
+    // Every real catalogue card has welcome_bonus: null. The ongoing result must still be offered.
+    const noBonus = (id: string): CardSetEntry => {
+      const base = e(id);
+      return { ...base, card: { ...base.card, welcome_bonus: null } };
+    };
+    const r = changeACard([e("fake-flat-cash")], items, [noBonus("fake-shared-cap")], await solverP);
+    const add = r.changes.find((c) => c.remove === null && c.add === "fake-shared-cap")!;
+    // Same hand value as above: groceries 4% on $400/month, no fee -> +$96/year ongoing.
+    expect(add.ongoing.gain_annual).toBeCloseTo(96, 6);
+    expect(add.first_year).toBeNull();
+    expect(r.excluded).toEqual([
+      { card_id: "fake-shared-cap", name: "FAKE Shared Cap Card", reasons: ["its welcome bonus is not yet verified"] },
+    ]);
   });
 
   it("does not offer additions when 3 cards are held, and lists unverified catalogue cards", async () => {
@@ -151,7 +167,7 @@ describe("gain breakdown", () => {
     for (const c of change.changes) {
       expect(c.ongoing.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.ongoing.gain_annual, 9);
       expect(c.ongoing.total_annual - change.actual_annual).toBeCloseTo(c.ongoing.total_gain_annual, 9);
-      expect(c.first_year.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.first_year.gain_annual, 9);
+      expect(c.first_year!.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.first_year!.gain_annual, 9);
     }
   });
 });
