@@ -3,7 +3,8 @@
  * solver itself. The app (browser) and the tests (Node) create a solver from
  * HiGHS and pass it in; see src/app/lib/solver.ts and tests/helpers/solver.ts.
  *
- * All variables are continuous and >= 0 unless bounded otherwise.
+ * Variables are >= 0, continuous unless listed in `binaries` (then 0 or 1,
+ * which makes it a mixed-integer program), with an optional upper bound.
  */
 
 export interface LpConstraint {
@@ -19,6 +20,10 @@ export interface LpProblem {
   constraints: readonly LpConstraint[];
   /** Every variable used anywhere. Each is >= 0. */
   variables: readonly string[];
+  /** Variables restricted to {0, 1}. Each must be in `variables`. */
+  binaries?: readonly string[];
+  /** Optional finite upper bounds on variables (lower bound stays 0). */
+  upper_bounds?: ReadonlyMap<string, number>;
 }
 
 export type LpSolution =
@@ -60,16 +65,32 @@ export function toLpText(problem: LpProblem): { text: string; names: Map<string,
   const lines = ["Maximize", ` obj: ${expr(problem.objective, name)}`, "Subject To"];
   problem.constraints.forEach((c, i) => {
     const e = expr(c.terms, name);
+    // HiGHS 1.15's LP reader misreads the ranged form "l <= expr <= u" (it keeps
+    // only the upper side), so write an equality, or two one-sided rows.
     if (c.lower !== undefined && c.upper !== undefined) {
-      lines.push(` c${i}: ${num(c.lower)} <= ${e} <= ${num(c.upper)}`);
+      if (c.lower === c.upper) lines.push(` c${i}: ${e} = ${num(c.lower)}`);
+      else lines.push(` c${i}: ${e} >= ${num(c.lower)}`, ` c${i}u: ${e} <= ${num(c.upper)}`);
     } else if (c.lower !== undefined) {
       lines.push(` c${i}: ${e} >= ${num(c.lower)}`);
     } else if (c.upper !== undefined) {
       lines.push(` c${i}: ${e} <= ${num(c.upper)}`);
     }
   });
+  const binaries = new Set(problem.binaries ?? []);
+  for (const [v, u] of problem.upper_bounds ?? []) {
+    name(v);
+    if (u < 0) throw new Error(`Upper bound of ${v} must be >= 0, got ${u}`);
+  }
   lines.push("Bounds");
-  for (const v of problem.variables) lines.push(` ${name(v)} >= 0`);
+  for (const v of problem.variables) {
+    if (binaries.has(v)) continue;
+    const u = problem.upper_bounds?.get(v);
+    lines.push(u === undefined ? ` ${name(v)} >= 0` : ` 0 <= ${name(v)} <= ${num(u)}`);
+  }
+  if (binaries.size > 0) {
+    lines.push("Binary");
+    for (const v of binaries) lines.push(` ${name(v)}`);
+  }
   lines.push("End");
   return { text: lines.join("\n"), names };
 }
@@ -91,7 +112,8 @@ export function createHighsSolver(highs: HighsLike): LpSolver {
     const { text, names } = toLpText(problem);
     let r: ReturnType<HighsLike["solve"]>;
     try {
-      r = highs.solve(text, { output_flag: false });
+      // mip_rel_gap 0: a mixed-integer solve must prove optimality, not stop at the default 0.01% gap.
+      r = highs.solve(text, problem.binaries?.length ? { output_flag: false, mip_rel_gap: 0 } : { output_flag: false });
     } catch (e) {
       return { status: "error", message: String(e) };
     }
