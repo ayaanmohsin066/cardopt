@@ -4,6 +4,7 @@ import {
   earnOptions,
   monthsSpanned,
   resolveCard,
+  routingModel,
   solveRouting,
   spendCells,
   type CardSetEntry,
@@ -173,5 +174,31 @@ describe("solveRouting", () => {
     const r = resolveCard({ ...grocery(), is_new: true }, [cell("groceries", 1)], "first_year");
     const t = bonusTargets([r], ["2026-01", "2026-02", "2026-03", "2026-04"]);
     expect(t).toEqual([{ card_id: "fake-grocery-cash", required: 1000, window_months_in_data: 3, value: 100, projected: false }]);
+  });
+});
+
+describe("solveRouting routes all demand, even at a negative value", () => {
+  it("foreign spend on a 1% card with a 2.5% FX fee is still fully routed (regression: ranged rows)", async () => {
+    // Value per $: 0.01 − 0.025/1.025 ≈ −0.0144, so a solver that dropped the lower side of the
+    // demand row would route $0. All $100 must be routed: upper_bound = 100 × (0.01 − 0.025/1.025).
+    const r = solveRouting([shared()], [cell("other", 100, "2026-01", true)], "ongoing", await getSolver());
+    expect(r.status).toBe("ok");
+    expect(r.cases[0].allocation).toEqual([{ card_id: "fake-shared-cap", category: "other", foreign: true, amount: 100 }]);
+    expect(r.cases[0].upper_bound).toBeCloseTo(100 * (0.01 - 0.025 / 1.025), 9);
+  });
+});
+
+describe("routingModel", () => {
+  it("builds one variable per (card, cell, tier), one demand row per cell and one cap row per cap period", async () => {
+    const cells = [cell("groceries", 300), cell("dining", 100), cell("groceries", 50, "2026-02")];
+    const usable = [shared(), flat()].map((e) => resolveCard(e, cells, "ongoing")).filter((r) => r.ok);
+    const m = routingModel(usable as Extract<(typeof usable)[number], { ok: true }>[], [...cells, cell("gas", 0)]);
+    // Zero-net cells are not demand. Shared card: bonus + after per cell; flat card: one tier.
+    expect(m.demand).toHaveLength(3);
+    expect(m.vars).toHaveLength(3 * 3);
+    expect(m.demand_rows.map((r) => [r.lower, r.upper])).toEqual([[300, 300], [100, 100], [50, 50]]);
+    // The shared $1,000 monthly cap: one row for January (groceries + dining bonus tiers), one for February.
+    expect(m.cap_rows.map((r) => [r.terms.size, r.upper])).toEqual([[2, 1000], [1, 1000]]);
+    expect(m.objective.get("fake-shared-cap|0|bonus")).toBeCloseTo(0.04, 12);
   });
 });

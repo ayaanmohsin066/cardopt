@@ -47,6 +47,7 @@
       "source_url": "https://example.com/fake-bank/fake-grocery-cash/warranty"
     }
   ],
+  "eligibility": null,
   "source_url": "https://example.com/fake-bank/fake-grocery-cash",
   "last_verified": "2026-01-01"
 }

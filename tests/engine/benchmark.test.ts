@@ -1,12 +1,13 @@
 // "Change a card" at catalogue scale: 100 synthetic FAKE cards, 3 owned cards.
 import { describe, expect, it } from "vitest";
-import { changeACard, pruneCatalogue, spendCells } from "@/engine";
+import { changeACard, pruneCatalogue, solveCatalogue, spendCells } from "@/engine";
 import { getSolver } from "../helpers/solver";
 import { syntheticCatalogue, syntheticOwned } from "../helpers/synthetic";
 
 const top = (r: ReturnType<typeof changeACard>, key: "ongoing" | "first_year") => {
-  const best = [...r.changes].sort((a, b) => b[key].gain_annual - a[key].gain_annual)[0];
-  return best && { remove: best.remove, add: best.add, gain: Math.round(best[key].gain_annual * 100) / 100 };
+  const gain = (c: (typeof r.changes)[number]) => c[key]?.gain_annual ?? -Infinity;
+  const best = [...r.changes].sort((a, b) => gain(b) - gain(a))[0];
+  return best && { remove: best.remove, add: best.add, gain: Math.round(gain(best) * 100) / 100 };
 };
 
 describe("change a card: benchmark", () => {
@@ -22,6 +23,22 @@ describe("change a card: benchmark", () => {
       expect(r.changes).toHaveLength(300);
       expect(ms).toBeLessThan(5_000);
     }
+  }, 60_000);
+});
+
+describe("catalogue MILP: benchmark", () => {
+  it("chooses the best 3 of 100 synthetic cards well under 5 s", async () => {
+    const solver = await getSolver();
+    const catalogue = syntheticCatalogue(100, 1);
+    const { itemsByCard } = syntheticOwned(7, 100);
+    const cells = spendCells([...itemsByCard.values()].flat());
+    const t = performance.now();
+    const r = solveCatalogue(catalogue, cells, { maxCards: 3 }, solver);
+    const ms = performance.now() - t;
+    console.log(`catalogue MILP: 100 cards, ${r.model.pairs} card-category pairs, ${r.model.x_vars} x vars: ${Math.round(ms)} ms`);
+    expect(r.status).toBe("ok");
+    expect(r.selected.length).toBeLessThanOrEqual(3);
+    expect(ms).toBeLessThan(5_000);
   }, 60_000);
 });
 

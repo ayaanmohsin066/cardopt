@@ -22,7 +22,16 @@ const STAGE_LABELS: Record<Stage, string> = {
   your_cards: "Checking your own cards",
   comparing: "Comparing other cards",
   sensitivity: "Checking point values",
+  wallet: "Choosing the best set of cards",
 };
+
+/** "" → null (not given); otherwise a finite amount >= 0, or "invalid". */
+function parseIncome(text: string): number | null | "invalid" {
+  const t = text.replace(/[\s,$]/g, "");
+  if (t === "") return null;
+  const n = Number(t);
+  return Number.isFinite(n) && n >= 0 ? n : "invalid";
+}
 
 const signed = (x: number) => `${x >= 0 ? "+" : "−"}${formatCad(Math.abs(x))}`;
 
@@ -43,6 +52,12 @@ export function EarnMore({ catalog, reports, version }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<(RecommendResults & { version: object }) | null>(null);
   const [showAll, setShowAll] = useState(false);
+  // Income for eligibility checks: React state only, never stored or sent anywhere but the worker.
+  const [personalIncome, setPersonalIncome] = useState("");
+  const [householdIncome, setHouseholdIncome] = useState("");
+  const personal = parseIncome(personalIncome);
+  const household = parseIncome(householdIncome);
+  const incomeInvalid = personal === "invalid" || household === "invalid";
   const worker = useRef<Worker | null>(null);
   const requestId = useRef(0);
   const name = (id: string) => catalog.cards.find((c) => c.id === id)?.name ?? id;
@@ -76,6 +91,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
   }
 
   function run() {
+    if (incomeInvalid) return;
     // A new request cancels the old one: terminating is the only way to stop a synchronous solve.
     cancel();
     setError(null);
@@ -107,6 +123,9 @@ export function EarnMore({ catalog, reports, version }: Props) {
       catalogue: catalog.cards.map(
         (c): CardSetEntry => ({ card: c.card, program: c.card.program_id ? catalog.programs[c.card.program_id] ?? null : null }),
       ),
+      applicant: personal === null && household === null
+        ? null
+        : { personal_income: personal as number | null, household_income: household as number | null },
     };
     setRunning({ stage: "loading", done: 0, total: 1 });
     w.postMessage(request);
@@ -144,6 +163,7 @@ export function EarnMore({ catalog, reports, version }: Props) {
             type="button"
             className="btn btn-primary"
             onClick={run}
+            disabled={incomeInvalid}
           >
             {running ? "Start over" : results ? "Run again" : "Find ways to earn more"}
           </button>
@@ -151,6 +171,34 @@ export function EarnMore({ catalog, reports, version }: Props) {
       </header>
 
       <div className="panel-body empty:hidden">
+      <fieldset className="flex flex-wrap items-end gap-3 text-sm">
+        <legend className="mb-1 text-xs text-muted">
+          Optional: your income, to skip cards you don&apos;t qualify for. It stays on this page and isn&apos;t saved.
+        </legend>
+        <label className="label">
+          <span>Personal income (CAD/year)</span>
+          <input
+            className="field w-40 font-normal"
+            inputMode="numeric"
+            autoComplete="off"
+            value={personalIncome}
+            onChange={(e) => setPersonalIncome(e.target.value)}
+            aria-invalid={personal === "invalid"}
+          />
+        </label>
+        <label className="label">
+          <span>Household income (CAD/year)</span>
+          <input
+            className="field w-40 font-normal"
+            inputMode="numeric"
+            autoComplete="off"
+            value={householdIncome}
+            onChange={(e) => setHouseholdIncome(e.target.value)}
+            aria-invalid={household === "invalid"}
+          />
+        </label>
+        {incomeInvalid && <p className="text-xs text-danger" role="alert">Enter income as a whole dollar amount, or leave it blank.</p>}
+      </fieldset>
       {running && (
         <div className="flex flex-col gap-1" role="status" aria-live="polite">
           <div className="flex justify-between text-xs text-muted">
@@ -353,10 +401,14 @@ export function EarnMore({ catalog, reports, version }: Props) {
                     {shown.map((c) => (
                       <tr key={`${c.remove}>${c.add}`}>
                         <td className="font-medium">{changeLabel(c)}</td>
-                        <td className="num"><Signed value={c.first_year.gain_annual} /></td>
+                        <td className="num">
+                          {c.first_year ? <Signed value={c.first_year.gain_annual} /> : <span className="text-muted">not yet verified</span>}
+                        </td>
                         <td className="num"><Signed value={c.ongoing.gain_annual} /></td>
                         <td className="text-xs text-muted">
-                          {c.first_year.bonus_value > 0
+                          {!c.first_year
+                            ? "First year not shown: its welcome bonus or first-year fee is not yet verified"
+                            : c.first_year.bonus_value > 0
                             ? `Includes ${formatCad(c.first_year.bonus_value)} welcome bonus${c.first_year.bonus_projected ? " (spend requirement projected from your pace)" : ""}`
                             : c.first_year.bonus_pursued
                               ? "Welcome bonus not reached with this spending"
@@ -380,6 +432,44 @@ export function EarnMore({ catalog, reports, version }: Props) {
                 {results.sens.scenarios === 0
                   ? "Point values: none of these cards' programs has a range of verified values, so there's nothing to vary."
                   : `Point values: the order of the top ${results.sens.base_ranking.length} held in ${results.sens.held} of ${results.sens.scenarios} scenarios where each points program was valued at its lowest and highest verified value.`}
+              </p>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-3 border-t border-border pt-6">
+            <div className="flex flex-col gap-0.5">
+              <p className="eyebrow">Card set</p>
+              <h3 className="text-base font-semibold">Best set of up to 3 cards</h3>
+            </div>
+            {results.wallet.status === "ok" ? (
+              <div className="flex flex-col gap-2 text-sm">
+                <p>
+                  {results.wallet.cards.map(name).join(" + ")}:{" "}
+                  <span className="font-semibold tabular-nums">{formatCad(results.wallet.total_annual)}</span>/year after annual fees,
+                  ongoing (projection, no welcome bonuses).
+                </p>
+                {results.wallet.new_cards.length > 0 && (
+                  <p className="text-xs text-muted">New for you: {results.wallet.new_cards.map(name).join(", ")}.</p>
+                )}
+                {results.wallet.eligibility_unverified.some((id) => results.wallet.cards.includes(id)) && (
+                  <p className="text-xs text-muted">
+                    Income requirement not yet verified for:{" "}
+                    {results.wallet.cards.filter((id) => results.wallet.eligibility_unverified.includes(id)).map(name).join(", ")}.
+                  </p>
+                )}
+                {results.wallet.ineligible.length > 0 && (
+                  <p className="text-xs text-muted">Skipped because of the income you entered: {results.wallet.ineligible.map(name).join(", ")}.</p>
+                )}
+              </div>
+            ) : (
+              <p className="inset px-4 py-3 text-sm text-muted">
+                {results.wallet.status === "infeasible"
+                  ? results.wallet.message
+                  : results.wallet.status === "no_usable_cards"
+                    ? "No cards have verified terms for this spending yet."
+                    : results.wallet.status === "no_data"
+                      ? "Not enough data to choose a set of cards."
+                      : `Couldn't choose a set of cards: ${results.wallet.message ?? "unknown error"}`}
               </p>
             )}
           </div>

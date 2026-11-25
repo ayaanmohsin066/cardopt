@@ -22,6 +22,7 @@ export * from "./reconcile";
 export * from "./credits";
 export * from "./lp";
 export * from "./optimize";
+export * from "./catalogue";
 export * from "./policy";
 export * from "./recommend";
 export * from "./bruteforce";

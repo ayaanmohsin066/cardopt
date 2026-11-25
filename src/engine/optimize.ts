@@ -283,6 +283,51 @@ function stepsFrom(used: EarnOption[], fallback: EarnOption[], cardOf: (id: stri
   return steps;
 }
 
+/** One LP variable: spend from one demand cell routed to one card's earn option. */
+export interface RoutingVar {
+  /** `${card_id}|${cell index}|${tier}` */
+  name: string;
+  cell: SpendCell;
+  option: EarnOption;
+}
+
+/**
+ * The routing model shared by solveRouting and solveCatalogue: one variable
+ * per (card, demand cell, tier), objective = $ value per $ routed, one
+ * equality row per demand cell (all spend is routed) and one upper-bound row
+ * per (card, cap, cap period) on its bonus-tier variables.
+ */
+export function routingModel(
+  usable: readonly Extract<ResolvedCard, { ok: true }>[],
+  cells: readonly SpendCell[],
+): { demand: SpendCell[]; vars: RoutingVar[]; objective: Map<string, number>; demand_rows: LpConstraint[]; cap_rows: LpConstraint[] } {
+  const demand = cells.filter((c) => c.net > EPS);
+  const vars: RoutingVar[] = [];
+  demand.forEach((cell, i) => {
+    for (const r of usable) {
+      for (const o of earnOptions(r, cell.category, cell.foreign)) {
+        vars.push({ name: `${o.card_id}|${i}|${o.tier}`, cell, option: o });
+      }
+    }
+  });
+  const objective = new Map(vars.map((v) => [v.name, v.option.value]));
+  const demand_rows: LpConstraint[] = demand.map((cell) => ({
+    terms: new Map(vars.filter((v) => v.cell === cell).map((v) => [v.name, 1])),
+    lower: cell.net,
+    upper: cell.net,
+  }));
+  const capGroups = new Map<string, { limit: number; names: string[] }>();
+  for (const v of vars) {
+    if (v.option.tier !== "bonus" || !v.option.cap) continue;
+    const key = `${v.option.card_id}|${v.option.cap.id}|${periodKey(`${v.cell.month}-01`, v.option.cap.period)}`;
+    const g = capGroups.get(key) ?? { limit: v.option.cap.amount, names: [] };
+    g.names.push(v.name);
+    capGroups.set(key, g);
+  }
+  const cap_rows: LpConstraint[] = [...capGroups.values()].map((g) => ({ terms: new Map(g.names.map((n) => [n, 1])), upper: g.limit }));
+  return { demand, vars, objective, demand_rows, cap_rows };
+}
+
 /**
  * Solve the routing LP for a card set. `solver` is injected (the engine never
  * loads one). For "first_year", every combination of new cards' welcome
@@ -303,33 +348,8 @@ export function solveRouting(
   if (usable.length === 0) return { ...base, status: "no_usable_cards", bonus_targets: [], cases: [] };
 
   const cardOf = (id: string) => usable.find((r) => r.entry.card.id === id)!.entry.card;
-  const demand = cells.filter((c) => c.net > EPS);
-
-  // Variables: one per (card, cell, tier).
-  interface VarMeta { name: string; cell: SpendCell; option: EarnOption }
-  const vars: VarMeta[] = [];
-  demand.forEach((cell, i) => {
-    for (const r of usable) {
-      for (const o of earnOptions(r, cell.category, cell.foreign)) {
-        vars.push({ name: `${o.card_id}|${i}|${o.tier}`, cell, option: o });
-      }
-    }
-  });
-  const objective = new Map(vars.map((v) => [v.name, v.option.value]));
-  const constraints: LpConstraint[] = [];
-  demand.forEach((cell, i) => {
-    const terms = new Map(vars.filter((v) => v.cell === demand[i]).map((v) => [v.name, 1]));
-    constraints.push({ terms, lower: cell.net, upper: cell.net });
-  });
-  const capGroups = new Map<string, { limit: number; names: string[] }>();
-  for (const v of vars) {
-    if (v.option.tier !== "bonus" || !v.option.cap) continue;
-    const key = `${v.option.card_id}|${v.option.cap.id}|${periodKey(`${v.cell.month}-01`, v.option.cap.period)}`;
-    const g = capGroups.get(key) ?? { limit: v.option.cap.amount, names: [] };
-    g.names.push(v.name);
-    capGroups.set(key, g);
-  }
-  for (const g of capGroups.values()) constraints.push({ terms: new Map(g.names.map((n) => [n, 1])), upper: g.limit });
+  const { demand, vars, objective, demand_rows, cap_rows } = routingModel(usable, cells);
+  const constraints: LpConstraint[] = [...demand_rows, ...cap_rows];
 
   const fees = usable.reduce((s, r) => s + (r.fee * months.length) / 12, 0);
   const targets = mode === "first_year" ? bonusTargets(usable, months) : [];

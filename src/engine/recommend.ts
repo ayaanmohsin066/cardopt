@@ -5,6 +5,7 @@
  */
 import { CATEGORIES, type Category } from "./categories";
 import type { CategorizedTransaction } from "./categorize";
+import { solveCatalogue, type Applicant, type CatalogueModelSize } from "./catalogue";
 import type { LpSolver } from "./lp";
 import {
   earnOptions,
@@ -177,6 +178,7 @@ export interface CardChange {
    * total_gain_annual: versus how the cards were actually used (routing gain + gain_annual).
    */
   ongoing: { total_annual: number; gain_annual: number; total_gain_annual: number; policy: CategoryPolicy[]; credit_rules: CreditRule[] };
+  /** null when the first-year case can't be evaluated (e.g. the welcome bonus or first-year fee is unverified). */
   first_year: {
     total_annual: number;
     gain_annual: number;
@@ -185,7 +187,7 @@ export interface CardChange {
     bonus_pursued: boolean;
     /** The bonus spend requirement was checked against a pace (data shorter than the window). */
     bonus_projected: boolean;
-  };
+  } | null;
 }
 
 export interface ChangeResult {
@@ -214,7 +216,7 @@ export interface ChangeOptions {
   onProgress?: (done: number, total: number) => void;
   /**
    * Skip catalogue cards that can't beat the current cards (see pruneCatalogue).
-   * Default false: 100 cards × 3 owned runs in under a second (tests/engine/benchmark.test.ts).
+   * Default false: 100 cards × 3 owned runs in a few seconds at most (tests/engine/benchmark.test.ts).
    */
   prune?: boolean;
 }
@@ -264,10 +266,11 @@ export function changeACard(
         excluded.set(x.card_id, { ...x, reasons: [...new Set([...(prev?.reasons ?? []), ...x.reasons])] });
       }
     }
-    if (!ongoing.evaluation || !firstYear.evaluation) return;
+    // Exclusion is per mode (docs/decisions.md, Earn more rule 10): an ongoing
+    // result stands even when first-year terms (e.g. the welcome bonus) are unverified.
+    if (!ongoing.evaluation) return;
     const fy = firstYear.evaluation;
     const og = ongoing.evaluation.score.total_annual - baseline_annual;
-    const fg = fy.score.total_annual - baseline_annual;
     changes.push({
       action: s.action,
       remove: s.remove,
@@ -280,10 +283,10 @@ export function changeACard(
         policy: ongoing.evaluation.policy,
         credit_rules: ongoing.evaluation.credit_rules,
       },
-      first_year: {
+      first_year: fy && {
         total_annual: fy.score.total_annual,
-        gain_annual: fg,
-        total_gain_annual: routing_gain_annual + fg,
+        gain_annual: fy.score.total_annual - baseline_annual,
+        total_gain_annual: routing_gain_annual + fy.score.total_annual - baseline_annual,
         bonus_value: fy.score.bonus_value,
         bonus_pursued: fy.pursued.length > 0,
         bonus_projected: fy.projected_bonus,
@@ -300,6 +303,69 @@ export function changeACard(
     pruned,
     changes,
     excluded: [...excluded.values()],
+  };
+}
+
+export interface BestWalletResult {
+  status: "ok" | "no_data" | "no_usable_cards" | "infeasible" | "error";
+  message?: string;
+  projection: Projection;
+  /** The cards to hold, in catalogue order (owned cards first). */
+  cards: string[];
+  /** Cards in `cards` the user doesn't hold yet. */
+  new_cards: string[];
+  /** Replayed value of the chosen cards used as suggested, per year (projection, after fees). Never the MILP objective. */
+  total_annual: number;
+  policy: CategoryPolicy[];
+  credit_rules: CreditRule[];
+  /** Cards the applicant is verified ineligible for (never chosen). */
+  ineligible: string[];
+  /** Usable cards whose eligibility couldn't be checked: allowed, and flagged. */
+  eligibility_unverified: string[];
+  excluded: Excluded[];
+  model: CatalogueModelSize | null;
+}
+
+/**
+ * "Best wallet": the best set of at most `maxCards` cards from the owned
+ * cards plus the catalogue, for all of the user's spend, chosen by the
+ * catalogue MILP (solveCatalogue) and valued by replaying the transactions.
+ * Ongoing only: no welcome bonuses, annual fees (docs/decisions.md, "Catalogue MILP").
+ */
+export function bestWallet(
+  owned: readonly CardSetEntry[],
+  itemsByCard: ReadonlyMap<string, readonly CategorizedTransaction[]>,
+  catalogue: readonly CardSetEntry[],
+  solver: LpSolver,
+  opts: { applicant?: Applicant | null; maxCards?: number } = {},
+): BestWalletResult {
+  const ownedIds = new Set(owned.map((e) => e.card.id));
+  const entries = [
+    ...owned.map((e) => ({ ...e, is_new: false })),
+    ...catalogue.filter((e) => !ownedIds.has(e.card.id)).map((e) => ({ ...e, is_new: true })),
+  ];
+  const pool = poolStatements(itemsByCard);
+  const cells = spendCells(pool.spend);
+  const empty = { cards: [], new_cards: [], total_annual: 0, policy: [], credit_rules: [], ineligible: [], eligibility_unverified: [], excluded: [], model: null };
+  if (cells.length === 0) return { ...empty, status: "no_data", projection: projection(0) };
+
+  const r = solveCatalogue(entries, cells, opts, solver);
+  const proj = projection(r.months.length);
+  const flags = { ineligible: r.ineligible, eligibility_unverified: r.eligibility_unverified, excluded: r.excluded, model: r.model };
+  if (r.status !== "ok") return { ...empty, ...flags, status: r.status, message: r.message, projection: proj };
+
+  const chosen = entries.filter((e) => r.selected.includes(e.card.id));
+  const ev = evaluateSet(chosen, pool, cells, "ongoing", solver);
+  if (!ev.evaluation) return { ...empty, ...flags, status: "error", message: ev.error ?? "The chosen cards could not be replayed.", projection: proj };
+  return {
+    ...flags,
+    status: "ok",
+    projection: projection(ev.evaluation.score.months),
+    cards: r.selected,
+    new_cards: r.selected.filter((id) => !ownedIds.has(id)),
+    total_annual: ev.evaluation.score.total_annual,
+    policy: ev.evaluation.policy,
+    credit_rules: ev.evaluation.credit_rules,
   };
 }
 

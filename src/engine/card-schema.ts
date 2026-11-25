@@ -101,6 +101,18 @@ export const perkSchema = z.strictObject({
   source_url: httpsUrl,
 });
 
+/** An income requirement: a verified minimum in CAD, "none" (verified: no such path), or null (unverified). */
+const incomeMinimum = term(z.union([nonNegative, z.literal("none")], { error: 'must be a non-negative number or "none"' }));
+
+/**
+ * Applicant eligibility as the issuer states it: a personal OR a household
+ * income minimum. `eligibility: null` means none of it is verified.
+ */
+export const eligibilitySchema = z.strictObject({
+  min_personal_income: incomeMinimum,
+  min_household_income: incomeMinimum,
+});
+
 export const cardSchema = z
   .strictObject({
     id: nonEmptyString,
@@ -120,6 +132,7 @@ export const cardSchema = z
     welcome_bonus: term(z.array(welcomeBonusSchema)),
     purchase_credits: term(z.array(purchaseCreditSchema)),
     perks: term(z.array(perkSchema)),
+    eligibility: term(eligibilitySchema),
     source_url: httpsUrl,
     last_verified: isoDate,
   })
@@ -178,6 +191,15 @@ export const cardSchema = z
       });
     }
 
+    // "none" on both paths would mean nobody can qualify; a card with no income requirement uses 0.
+    if (card.eligibility?.min_personal_income === "none" && card.eligibility.min_household_income === "none") {
+      ctx.addIssue({
+        code: "custom",
+        path: ["eligibility"],
+        message: 'must not be "none" on both paths (use 0 when there is no income requirement)',
+      });
+    }
+
     // Cashback cards are expressed in the cash program; points cards are not.
     if (card.card_type === "cashback" && card.program_id !== null && card.program_id !== CASH_PROGRAM_ID) {
       ctx.addIssue({
@@ -201,6 +223,7 @@ export type Cap = z.infer<typeof capSchema>;
 export type WelcomeBonus = z.infer<typeof welcomeBonusSchema>;
 export type PurchaseCredit = z.infer<typeof purchaseCreditSchema>;
 export type Perk = z.infer<typeof perkSchema>;
+export type Eligibility = z.infer<typeof eligibilitySchema>;
 export type Network = (typeof NETWORKS)[number];
 export type CardType = (typeof CARD_TYPES)[number];
 export type PerkType = (typeof PERK_TYPES)[number];

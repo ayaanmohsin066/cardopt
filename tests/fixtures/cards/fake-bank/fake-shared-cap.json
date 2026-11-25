@@ -39,6 +39,7 @@
   "welcome_bonus": [],
   "purchase_credits": [],
   "perks": [],
+  "eligibility": null,
   "source_url": "https://example.com/fake-bank/fake-shared-cap",
   "last_verified": "2026-01-01"
 }

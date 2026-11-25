@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  bestWallet,
   changeACard,
   projection,
   rankingStability,
@@ -102,7 +103,7 @@ describe("changeACard", () => {
     expect(r.baseline_annual).toBeCloseTo(96, 6);
     const gain = (remove: string | null, add: string) => {
       const c = r.changes.find((x) => x.remove === remove && x.add === add)!;
-      return [Math.round(c.ongoing.gain_annual * 100) / 100, Math.round(c.first_year.gain_annual * 100) / 100];
+      return [Math.round(c.ongoing.gain_annual * 100) / 100, Math.round(c.first_year!.gain_annual * 100) / 100];
     };
     // Shared-cap card: groceries 4%, no fee: $16/month -> +$96/year.
     expect(gain(null, "fake-shared-cap")).toEqual([96, 96]);
@@ -120,6 +121,22 @@ describe("changeACard", () => {
     expect(r.changes.every((c) => Math.abs(c.ongoing.total_gain_annual - c.ongoing.gain_annual) < 1e-9)).toBe(true);
     const pts = r.changes.find((x) => x.remove === null && x.add === "fake-points")!;
     expect(pts.first_year).toMatchObject({ bonus_pursued: true, bonus_projected: true, bonus_value: 100 });
+  });
+
+  it("keeps an ongoing change when the added card's welcome bonus is unverified (first year is null)", async () => {
+    // Every real catalogue card has welcome_bonus: null. The ongoing result must still be offered.
+    const noBonus = (id: string): CardSetEntry => {
+      const base = e(id);
+      return { ...base, card: { ...base.card, welcome_bonus: null } };
+    };
+    const r = changeACard([e("fake-flat-cash")], items, [noBonus("fake-shared-cap")], await solverP);
+    const add = r.changes.find((c) => c.remove === null && c.add === "fake-shared-cap")!;
+    // Same hand value as above: groceries 4% on $400/month, no fee -> +$96/year ongoing.
+    expect(add.ongoing.gain_annual).toBeCloseTo(96, 6);
+    expect(add.first_year).toBeNull();
+    expect(r.excluded).toEqual([
+      { card_id: "fake-shared-cap", name: "FAKE Shared Cap Card", reasons: ["its welcome bonus is not yet verified"] },
+    ]);
   });
 
   it("does not offer additions when 3 cards are held, and lists unverified catalogue cards", async () => {
@@ -151,7 +168,7 @@ describe("gain breakdown", () => {
     for (const c of change.changes) {
       expect(c.ongoing.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.ongoing.gain_annual, 9);
       expect(c.ongoing.total_annual - change.actual_annual).toBeCloseTo(c.ongoing.total_gain_annual, 9);
-      expect(c.first_year.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.first_year.gain_annual, 9);
+      expect(c.first_year!.total_gain_annual).toBeCloseTo(change.routing_gain_annual + c.first_year!.gain_annual, 9);
     }
   });
 });
@@ -172,5 +189,49 @@ describe("sensitivity", () => {
     ]);
     expect(s.held).toBe(s.details.filter((d) => d.held).length);
     expect(s.share).toBe(s.held / 2);
+  });
+});
+
+describe("bestWallet (catalogue MILP, valued by replay)", () => {
+  const solverP = getSolver();
+  const items = new Map<string, CategorizedTransaction[]>([["fake-flat-cash", [item("2026-01-05", "groceries", 400, { description: "LOBLAWS" })]]]);
+  const catalogue = () => [e("fake-grocery-cash"), e("fake-shared-cap")];
+  const withElig = (x: CardSetEntry): CardSetEntry => ({ ...x, card: { ...x.card, eligibility: { min_personal_income: 60000, min_household_income: "none" } } });
+
+  it("picks the shared-cap card for $400 groceries: 4% = $16/month → $192/year (hand-computed)", async () => {
+    // Grocery card: 5% − $100/12 fee = $11.67/month; flat card 2% = $8. The 4% no-fee card wins.
+    const r = bestWallet([e("fake-flat-cash")], items, catalogue(), await solverP);
+    expect(r.status).toBe("ok");
+    expect(r.cards).toContain("fake-shared-cap");
+    expect(r.cards).not.toContain("fake-grocery-cash");
+    expect(r.new_cards).toContain("fake-shared-cap");
+    expect(r.total_annual).toBeCloseTo(192, 6);
+    expect(r.model).toMatchObject({ binaries: 3, fee_terms: 1, rows: { cardinality: 1 } });
+    expect(r).not.toHaveProperty("upper_bound");
+  });
+
+  it("skips a card the applicant is verified ineligible for: grocery card instead, (20 − 8.33) × 12 = $140/year", async () => {
+    const r = bestWallet([e("fake-flat-cash")], items, [e("fake-grocery-cash"), withElig(e("fake-shared-cap"))], await solverP, {
+      applicant: { personal_income: 50000, household_income: null },
+    });
+    expect(r.ineligible).toEqual(["fake-shared-cap"]);
+    // Holding the no-fee flat card too costs nothing, so the solver may keep it; the shared-cap card is never chosen.
+    expect(r.cards).toContain("fake-grocery-cash");
+    expect(r.cards).not.toContain("fake-shared-cap");
+    expect(r.total_annual).toBeCloseTo(140, 6);
+  });
+
+  it("allows and flags a card when no income is given", async () => {
+    const r = bestWallet([e("fake-flat-cash")], items, [e("fake-grocery-cash"), withElig(e("fake-shared-cap"))], await solverP);
+    expect(r.cards).toContain("fake-shared-cap");
+    expect(r.eligibility_unverified).toContain("fake-shared-cap");
+  });
+
+  it("reports no data, and no usable cards, without solving", async () => {
+    const solver = await solverP;
+    expect(bestWallet([e("fake-flat-cash")], new Map([["fake-flat-cash", []]]), catalogue(), solver).status).toBe("no_data");
+    const r = bestWallet([e("fake-points")], new Map([["fake-points", [item("2026-01-06", "gas", 50)]]]), [], solver);
+    expect(r.status).toBe("no_usable_cards");
+    expect(r.excluded.map((x) => x.card_id)).toEqual(["fake-points"]);
   });
 });
