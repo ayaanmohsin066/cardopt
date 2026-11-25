@@ -6,6 +6,7 @@ export const amexCanadaPreset: Preset = {
   issuer_id: "amex-canada",
   label: "American Express Canada",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified American Express Canada export format yet. Map the columns yourself.",

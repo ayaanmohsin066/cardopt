@@ -6,6 +6,7 @@ export const nationalBankPreset: Preset = {
   issuer_id: "national-bank",
   label: "National Bank",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified National Bank export format yet. Map the columns yourself.",

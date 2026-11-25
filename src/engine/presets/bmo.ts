@@ -6,6 +6,7 @@ export const bmoPreset: Preset = {
   issuer_id: "bmo",
   label: "BMO",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified BMO export format yet. Map the columns yourself.",

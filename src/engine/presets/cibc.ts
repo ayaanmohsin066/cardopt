@@ -6,6 +6,7 @@ export const cibcPreset: Preset = {
   issuer_id: "cibc",
   label: "CIBC",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified CIBC export format yet. Map the columns yourself.",

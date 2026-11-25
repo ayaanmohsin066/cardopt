@@ -62,7 +62,7 @@ does.
   - `amount_cad` is positive for charges and negative for credits. A refund is a negative purchase: it keeps its merchant's category and reduces that category's spend, and later its points.
   - Payments, fees and interest have no category. Fees and interest are kept for the benefits report.
   - `statement_line` is the tie-break for posting order.
-- **Bank presets** (`src/engine/presets/`): a preset with `verified: false` must have `mapping: null` and `format: null`. Never guess a bank's column names. A preset becomes verified only from a real sample export.
+- **Bank presets** (`src/engine/presets/`): a preset with `verified: false` must have `mapping: null` and `format: null`, unless `documented_by` cites public https pages that state every part of the layout; the UI then says it wasn't checked against a real export. Never guess a bank's column names. A preset becomes verified only from a real sample export.
 - **Categorization:**
   - Rules come from `src/data/merchant_rules.json` and are matched case-insensitively on word boundaries (`containsPhrase`), after stripping accents and punctuation.
   - The longest keyword wins. Use specific keywords ("united airlines", not "united"), and merchant names only.

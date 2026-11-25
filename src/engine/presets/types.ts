@@ -41,6 +41,12 @@ export interface Preset {
    * maps columns in the UI. Never guess column names.
    */
   verified: boolean;
+  /**
+   * Public, non-bank pages (https) that describe this layout. A preset with a
+   * mapping but not verified must cite at least one, and the UI says the layout
+   * was not checked against a real export. [] when there are none.
+   */
+  documented_by: string[];
   mapping: ColumnMapping | null;
   format: CsvFormat | null;
   notes: string;

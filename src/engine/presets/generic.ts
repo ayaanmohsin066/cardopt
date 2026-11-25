@@ -6,6 +6,7 @@ export const genericPreset: Preset = {
   issuer_id: null,
   label: "Other / map columns myself",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "Choose which column holds the date, description and amount.",

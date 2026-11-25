@@ -20,7 +20,10 @@ export function presetForIssuer(issuerId: string): Preset {
   return ISSUER_PRESETS.find((p) => p.issuer_id === issuerId) ?? genericPreset;
 }
 
-/** True when the preset can be used without the user mapping columns. */
+/**
+ * True when the preset can prefill the columns: verified from a real export, or
+ * cited to public documentation. Use `preset.verified` to tell the two apart.
+ */
 export function isUsablePreset(preset: Preset): boolean {
-  return preset.verified && preset.mapping !== null && preset.format !== null;
+  return (preset.verified || preset.documented_by.length > 0) && preset.mapping !== null && preset.format !== null;
 }

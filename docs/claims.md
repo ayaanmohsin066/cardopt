@@ -12,7 +12,7 @@ Run it with `npm run test:claims -- --silent=false` to see the measured numbers.
 | Mixed-integer linear program solved in-browser with HiGHS WASM | `tests/engine/catalogue.test.ts`, `tests/rules/solver-asset.test.ts` | **Passes** | MILP with fee (−fee·y), cap, eligibility and card-count rows |
 | …with 80+ card-category variables on the real catalogue | `tests/claims/lp-size.test.ts` | Fails | 60 pairs (5 usable cards × 12 categories), 56 cap rows, 5 fee terms, 0 eligibility rows |
 | No data leaves the browser | `tests/rules/` | **Passes** | Network rule, CSP `connect-src 'self'` |
-| CSVs from 3+ Canadian institutions | `tests/claims/presets.test.ts` | Fails | 0 of 8 presets verified |
+| CSVs from 3+ Canadian institutions | `tests/claims/presets.test.ts` | Fails | 0 of 8 presets verified from a real export; 1 (RBC) from public third-party documentation |
 | 90%+ categorization accuracy on a hand-labelled set | `tests/claims/categorize-accuracy.test.ts` | Fails | No labelled set yet, so nothing can be measured |
 | 20+ Zod-validated Canadian cards | `tests/claims/cards.test.ts` | Fails | 9 cards, all valid |
 
@@ -45,6 +45,8 @@ The target is 20. That also gives the 80+ card-category pairs, which needs at le
 
 ### 4. Real export layouts from 3 banks
 
+RBC has a preset taken from public third-party pages (`documented_by` in `src/engine/presets/rbc.ts`). It prefills the columns, but stays `verified: false` and doesn't count toward this claim until checked against a real export. On 2026-11-25 no public page gave a complete layout for TD (date format missing), BMO (header and date format unclear), CIBC or Scotiabank.
+
 For each bank, provide one sample CSV export with the real header row and layout. The values may be redacted. This tells the preset:
 
 - the delimiter;
@@ -57,7 +59,7 @@ Then, for each bank:
 
 1. Put a fixture at `tests/fixtures/statements/presets/<preset-id>.csv` that has the real header and at least 3 FAKE rows.
 2. Fill `mapping` and `format` in `src/engine/presets/<bank>.ts` and set `verified: true`.
-3. Change the "marks every current issuer stub unverified" test in `tests/engine/presets.test.ts` so it covers only the presets that are still unverified.
+3. Change the "has no preset verified from a real export yet" test in `tests/engine/presets.test.ts` so it covers only the presets that are still unverified.
 
 ### 5. A hand-labelled transaction set
 

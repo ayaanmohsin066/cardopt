@@ -6,6 +6,7 @@ export const tdPreset: Preset = {
   issuer_id: "td",
   label: "TD",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified TD export format yet. Map the columns yourself.",
