@@ -24,7 +24,7 @@
   "welcome_bonus": null,
   "purchase_credits": null,
   "perks": null,
-  "eligibility": null,
+  "eligibility": { "min_personal_income": 80000, "min_household_income": 150000 },
   "source_url": "https://www.desjardins.com/ca/personal/loans-credit/credit-cards/cash-back-world-elite-mastercard/index.jsp",
-  "last_verified": "2026-10-18"
+  "last_verified": "2026-11-25"
 }

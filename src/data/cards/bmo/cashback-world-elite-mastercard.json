@@ -18,15 +18,15 @@
     { "id": "recurring-cap", "amount": 500, "period": "month" }
   ],
   "earn_rules": [
-    { "categories": ["groceries"], "rate": 5, "cap_id": "groceries-cap", "after_cap_rate": 1 },
-    { "categories": ["transit"], "rate": 4, "cap_id": "transit-cap", "after_cap_rate": 1 },
-    { "categories": ["gas"], "rate": 3, "cap_id": "gas-cap", "after_cap_rate": 1 },
-    { "categories": ["recurring_bills"], "rate": 2, "cap_id": "recurring-cap", "after_cap_rate": 1 }
+    { "categories": ["groceries"], "rate": 5, "cap_id": "groceries-cap", "after_cap_rate": null },
+    { "categories": ["transit"], "rate": 4, "cap_id": "transit-cap", "after_cap_rate": null },
+    { "categories": ["gas"], "rate": 3, "cap_id": "gas-cap", "after_cap_rate": null },
+    { "categories": ["recurring_bills"], "rate": 2, "cap_id": "recurring-cap", "after_cap_rate": null }
   ],
   "welcome_bonus": null,
   "purchase_credits": null,
   "perks": null,
-  "eligibility": null,
+  "eligibility": { "min_personal_income": 80000, "min_household_income": 150000 },
   "source_url": "https://www.bmo.com/main/personal/credit-cards/bmo-cashback-world-elite-mastercard",
-  "last_verified": "2026-10-18"
+  "last_verified": "2026-11-25"
 }
