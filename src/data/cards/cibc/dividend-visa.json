@@ -1,0 +1,25 @@
+{
+  "id": "dividend-visa",
+  "name": "CIBC Dividend Visa Card",
+  "issuer": "cibc",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": null,
+  "earn_rules": [
+    {"categories": ["groceries"], "rate": 2, "cap_id": null, "after_cap_rate": null},
+    {"categories": ["gas", "transit", "dining", "recurring_bills"], "rate": 1, "cap_id": null, "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": {"min_personal_income": null, "min_household_income": 15000},
+  "source_url": "https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-card.html",
+  "last_verified": "2026-11-25"
+}

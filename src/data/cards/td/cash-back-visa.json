@@ -1,0 +1,32 @@
+{
+  "id": "cash-back-visa",
+  "name": "TD Cash Back Visa Card",
+  "issuer": "td",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": [
+    {"id": "grocery-annual", "amount": 5000, "period": "year"},
+    {"id": "gas-annual", "amount": 5000, "period": "year"},
+    {"id": "transit-annual", "amount": 5000, "period": "year"},
+    {"id": "streaming-bills-annual", "amount": 5000, "period": "year"}
+  ],
+  "earn_rules": [
+    {"categories": ["groceries"], "rate": 1, "cap_id": "grocery-annual", "after_cap_rate": 0.5},
+    {"categories": ["gas"], "rate": 1, "cap_id": "gas-annual", "after_cap_rate": 0.5},
+    {"categories": ["transit"], "rate": 1, "cap_id": "transit-annual", "after_cap_rate": 0.5},
+    {"categories": ["streaming", "recurring_bills"], "rate": 1, "cap_id": "streaming-bills-annual", "after_cap_rate": 0.5}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-card",
+  "last_verified": "2026-11-25"
+}
