@@ -1,7 +1,14 @@
 {
   "id": "a-la-carte-rewards",
   "name": "À la carte Rewards",
-  "redemptions": [],
-  "source_url": null,
-  "last_verified": null
+  "redemptions": [
+    {
+      "method": "a-la-carte-travel",
+      "cents_per_point": 1,
+      "is_estimate": false,
+      "notes": "Booking through À la carte Travel: \"Every 10,000 points will give you a $100 travel credit.\" Redemptions must be made within 60 days of the trip purchase."
+    }
+  ],
+  "source_url": "https://www.nbc.ca/personal/help-centre/credit-card/cashback-rewards/use-my-rewards-points-for-travel.html",
+  "last_verified": "2026-11-25"
 }

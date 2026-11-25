@@ -22,7 +22,7 @@
   "welcome_bonus": null,
   "purchase_credits": null,
   "perks": null,
-  "eligibility": null,
+  "eligibility": { "min_personal_income": 80000, "min_household_income": 150000 },
   "source_url": "https://www.nbc.ca/personal/mastercard-credit-cards/world-elite.html",
-  "last_verified": "2026-10-18"
+  "last_verified": "2026-11-25"
 }

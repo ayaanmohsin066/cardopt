@@ -1,0 +1,24 @@
+{
+  "id": "echo-cashback-mastercard",
+  "name": "National Bank ECHO Cashback Mastercard",
+  "issuer": "national-bank",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": null,
+  "first_year_fee": null,
+  "fx_fee_pct": null,
+  "base_rate": 1,
+  "caps": null,
+  "earn_rules": [
+    {"categories": ["gas", "groceries", "online_shopping"], "rate": 1.5, "cap_id": null, "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": {"min_personal_income": 0, "min_household_income": null},
+  "source_url": "https://www.nbc.ca/personal/mastercard-credit-cards/echo.html",
+  "last_verified": "2026-11-25"
+}

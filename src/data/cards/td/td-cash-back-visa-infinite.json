@@ -75,7 +75,7 @@
       "source_url": "https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-infinite-card"
     }
   ],
-  "eligibility": null,
+  "eligibility": { "min_personal_income": 60000, "min_household_income": 100000 },
   "source_url": "https://www.td.com/ca/en/personal-banking/products/credit-cards/cash-back/cash-back-visa-infinite-card",
-  "last_verified": "2026-10-01"
+  "last_verified": "2026-11-25"
 }

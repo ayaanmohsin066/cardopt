@@ -9,11 +9,12 @@
   "program_id": "amex-membership-rewards",
   "annual_fee": 191.88,
   "first_year_fee": 191.88,
-  "fx_fee_pct": null,
+  "fx_fee_pct": 2.5,
   "base_rate": 1,
   "caps": null,
   "earn_rules": [
-    { "categories": ["dining", "groceries"], "rate": 5, "cap_id": null, "after_cap_rate": null },
+    { "categories": ["dining"], "rate": 5, "cap_id": null, "after_cap_rate": null },
+    { "categories": ["groceries"], "rate": null, "cap_id": null, "after_cap_rate": null },
     { "categories": ["streaming"], "rate": 3, "cap_id": null, "after_cap_rate": null },
     { "categories": ["gas", "transit"], "rate": 2, "cap_id": null, "after_cap_rate": null }
   ],
@@ -63,5 +64,5 @@
   ],
   "eligibility": null,
   "source_url": "https://www.americanexpress.com/en-ca/credit-cards/cobalt-card/",
-  "last_verified": "2026-10-01"
+  "last_verified": "2026-11-25"
 }
