@@ -1,7 +1,14 @@
 {
   "id": "amex-membership-rewards",
   "name": "American Express Membership Rewards",
-  "redemptions": [],
-  "source_url": null,
-  "last_verified": null
+  "redemptions": [
+    {
+      "method": "statement-credit",
+      "cents_per_point": 1,
+      "is_estimate": false,
+      "notes": "Pay balance with Points: \"1000 points = $10 statement credit\"; minimum 1,000 points per redemption. The page lists the Cobalt Card as an eligible card."
+    }
+  ],
+  "source_url": "https://www.americanexpress.com/en-ca/benefits/rewards/membership-rewards/pay-balance-with-points/",
+  "last_verified": "2026-11-25"
 }

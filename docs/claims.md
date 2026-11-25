@@ -8,40 +8,37 @@ Run it with `npm run test:claims -- --silent=false` to see the measured numbers.
 
 | Claim | Test | Status | Measured |
 |---|---|---|---|
-| 380+ Vitest tests | `npm test` | **Passes** | 415 passed |
+| 380+ Vitest tests | `npm test` | **Passes** | 427 passed |
 | Mixed-integer linear program solved in-browser with HiGHS WASM | `tests/engine/catalogue.test.ts`, `tests/rules/solver-asset.test.ts` | **Passes** | MILP with fee (−fee·y), cap, eligibility and card-count rows |
-| …with 80+ card-category variables on the real catalogue | `tests/claims/lp-size.test.ts` | Fails | 60 pairs (5 usable cards × 12 categories), 56 cap rows, 5 fee terms, 0 eligibility rows |
+| …with 80+ card-category variables on the real catalogue | `tests/claims/lp-size.test.ts` | **Passes** | 84 pairs (7 usable cards × 12 categories), 25 cap rows, 4 fee terms, 3 eligibility rows |
 | No data leaves the browser | `tests/rules/` | **Passes** | Network rule, CSP `connect-src 'self'` |
 | CSVs from 3+ Canadian institutions | `tests/claims/presets.test.ts` | Fails | 0 of 8 presets verified from a real export; 1 (RBC) from public third-party documentation |
 | 90%+ categorization accuracy on a hand-labelled set | `tests/claims/categorize-accuracy.test.ts` | Fails | No labelled set yet, so nothing can be measured |
-| 20+ Zod-validated Canadian cards | `tests/claims/cards.test.ts` | Fails | 9 cards, all valid |
+| 20+ Zod-validated Canadian cards | `tests/claims/cards.test.ts` | **Passes** | 21 cards, all valid |
 
 ## What only a person can supply
 
 The code is ready for each item below. None of these values may be invented, guessed or filled in from memory (CLAUDE.md hard rule 5).
 
-### 1. Point values for 4 programs
+### 1. Point values for 2 programs
 
-Without these, 4 of the 9 cards can't be used: Amex Cobalt, NBC World Elite, RBC Avion and TD Aeroplan.
+`amex-membership-rewards` (statement credit) and `a-la-carte-rewards` (À la carte Travel) now have values from their official pages. `avion-rewards` and `aeroplan-rewards` still have none: their official pages give no fixed points-to-dollars rate, so RBC Avion and TD Aeroplan can't be used yet.
 
-- **Programs:** `avion-rewards`, `aeroplan-rewards`, `amex-membership-rewards` and `a-la-carte-rewards` in `src/data/programs/`.
 - **What to add:** one `redemptions` entry per method, with `cents_per_point`, `is_estimate` (and `notes` if it is an estimate), `source_url` and `last_verified`.
 - **Source:** each program's official redemption page.
-- **Also unverified:** Cobalt, Avion and Aeroplan have unverified caps or rates for some categories (run `npm run card-status`).
 
-### 2. 11 or more additional cards
+### 2. Unverified terms on the remaining cards
 
-The target is 20. That also gives the 80+ card-category pairs, which needs at least 7 fully usable cards × 12 categories.
+14 of the 21 cards are still excluded from the optimizer because a term it needs isn't verified (unstated caps, after-cap rates or fees, or choose-your-category rates). Run `npm run card-status` and the lp-size claim's `excluded` list to see which.
 
-- **Where:** `src/data/issuers.json` already lists capital-one-canada, mbna, pc-financial, canadian-tire, rogers-bank, tangerine, simplii, walmart-rewards, neo-financial, brim-financial and others.
-- **How:** run `npm run new-card -- <issuer> <card-id>`, then fill in only what the issuer page states. Set `last_verified` to the day you checked.
+- **How:** fill in only what the issuer page states. Set `last_verified` to the day you checked.
 - **FX fee:** fill `fx_fee_pct` where it is published, so a card isn't dropped whenever there is foreign spend.
 
 ### 3. Income eligibility
 
 - **Field:** `eligibility.min_personal_income` / `min_household_income` on each card.
 - **Values:** a number, `"none"` (that path doesn't exist), or `null` (unverified).
-- **Rule:** fill these only from the issuer page. The eligibility part of the LP claim needs at least one card with a verified minimum above the stated test applicant's income ($40,000 personal, $60,000 household).
+- **Rule:** fill these only from the issuer page. The catalogue MILP now has 3 eligibility rows: 3 usable cards have minimums above the test applicant's income ($40,000 personal, $60,000 household).
 
 ### 4. Real export layouts from 3 banks
 

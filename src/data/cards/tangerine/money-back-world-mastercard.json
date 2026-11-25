@@ -1,0 +1,24 @@
+{
+  "id": "money-back-world-mastercard",
+  "name": "Tangerine Money-Back World Mastercard",
+  "issuer": "tangerine",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": 2.5,
+  "base_rate": 0.5,
+  "caps": null,
+  "earn_rules": null,
+  "welcome_bonus": [
+    {"points_or_cash": 12000, "min_spend": 1500, "window_months": 3}
+  ],
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.tangerine.ca/en/personal/spend/credit-cards/world-credit-card",
+  "last_verified": "2026-11-25"
+}

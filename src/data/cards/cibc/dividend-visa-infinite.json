@@ -13,13 +13,33 @@
   "base_rate": 1,
   "caps": null,
   "earn_rules": [
-    { "categories": ["gas", "groceries"], "rate": 4, "cap_id": "none", "after_cap_rate": null },
-    { "categories": ["transit", "dining", "recurring_bills"], "rate": 2, "cap_id": "none", "after_cap_rate": null }
+    {
+      "categories": [
+        "gas",
+        "groceries"
+      ],
+      "rate": 4,
+      "cap_id": null,
+      "after_cap_rate": null
+    },
+    {
+      "categories": [
+        "transit",
+        "dining",
+        "recurring_bills"
+      ],
+      "rate": 2,
+      "cap_id": null,
+      "after_cap_rate": null
+    }
   ],
   "welcome_bonus": null,
   "purchase_credits": null,
   "perks": null,
-  "eligibility": null,
+  "eligibility": {
+    "min_personal_income": 60000,
+    "min_household_income": 100000
+  },
   "source_url": "https://www.cibc.com/en/personal-banking/credit-cards/all-credit-cards/dividend-visa-infinite-card.html",
-  "last_verified": "2026-10-18"
+  "last_verified": "2026-11-25"
 }

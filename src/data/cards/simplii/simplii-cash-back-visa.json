@@ -1,0 +1,27 @@
+{
+  "id": "simplii-cash-back-visa",
+  "name": "Simplii Financial Cash Back Visa Card",
+  "issuer": "simplii",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": [
+    {"id": "dining-annual", "amount": 5000, "period": "year"}
+  ],
+  "earn_rules": [
+    {"categories": ["dining"], "rate": 4, "cap_id": "dining-annual", "after_cap_rate": null},
+    {"categories": ["gas", "groceries", "drugstore", "recurring_bills"], "rate": 1.5, "cap_id": null, "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": {"min_personal_income": null, "min_household_income": 15000},
+  "source_url": "https://www.simplii.com/en/credit-cards/cash-back-visa.html",
+  "last_verified": "2026-11-25"
+}

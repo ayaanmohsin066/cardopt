@@ -1,0 +1,28 @@
+{
+  "id": "cashback-mastercard",
+  "name": "BMO CashBack Mastercard",
+  "issuer": "bmo",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "mastercard",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": null,
+  "first_year_fee": null,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": [
+    {"id": "groceries-statement", "amount": 500, "period": "month"},
+    {"id": "recurring-statement", "amount": 500, "period": "month"}
+  ],
+  "earn_rules": [
+    {"categories": ["groceries"], "rate": 3, "cap_id": "groceries-statement", "after_cap_rate": null},
+    {"categories": ["recurring_bills"], "rate": 1, "cap_id": "recurring-statement", "after_cap_rate": 0.5}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.bmo.com/main/personal/credit-cards/bmo-cashback-mastercard/",
+  "last_verified": "2026-11-25"
+}

@@ -1,0 +1,30 @@
+{
+  "id": "desjardins-cash-back-visa",
+  "name": "Desjardins Cash Back Visa",
+  "issuer": "desjardins",
+  "country": "CA",
+  "currency": "CAD",
+  "network": "visa",
+  "card_type": "cashback",
+  "program_id": "cash-cad",
+  "annual_fee": 0,
+  "first_year_fee": 0,
+  "fx_fee_pct": null,
+  "base_rate": 0.5,
+  "caps": [
+    {"id": "restaurants-annual", "amount": 3600, "period": "year"},
+    {"id": "preauthorized-annual", "amount": 3600, "period": "year"}
+  ],
+  "earn_rules": [
+    {"categories": ["dining"], "rate": null, "cap_id": "restaurants-annual", "after_cap_rate": 0.5},
+    {"categories": ["recurring_bills"], "rate": null, "cap_id": "preauthorized-annual", "after_cap_rate": 0.5},
+    {"categories": ["entertainment"], "rate": 2, "cap_id": null, "after_cap_rate": null},
+    {"categories": ["transit"], "rate": 2, "cap_id": null, "after_cap_rate": null}
+  ],
+  "welcome_bonus": null,
+  "purchase_credits": null,
+  "perks": null,
+  "eligibility": null,
+  "source_url": "https://www.desjardins.com/en/credit-cards/cash-back-visa.html",
+  "last_verified": "2026-11-25"
+}
