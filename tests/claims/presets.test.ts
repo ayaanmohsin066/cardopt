@@ -7,10 +7,12 @@ import { ingestCsv, isUsablePreset, ISSUER_PRESETS } from "@/engine";
 import { FIXTURES_DIR } from "../helpers/data-files";
 
 describe("claim: 3+ institutions with verified presets", () => {
-  const usable = ISSUER_PRESETS.filter(isUsablePreset);
+  // Publicly documented presets are usable in the app but don't count as verified.
+  const usable = ISSUER_PRESETS.filter((p) => isUsablePreset(p) && p.verified);
 
   it("has >= 3 usable issuer presets", () => {
-    console.log(`usable presets: ${usable.length} (${usable.map((p) => p.id).join(", ") || "none"})`);
+    console.log(`publicly documented: ${ISSUER_PRESETS.filter((p) => !p.verified && isUsablePreset(p)).map((p) => p.id).join(", ") || "none"}`);
+    console.log(`verified presets: ${usable.length} (${usable.map((p) => p.id).join(", ") || "none"})`);
     expect(usable.length).toBeGreaterThanOrEqual(3);
   });
 

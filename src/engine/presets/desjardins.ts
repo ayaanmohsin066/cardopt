@@ -6,6 +6,7 @@ export const desjardinsPreset: Preset = {
   issuer_id: "desjardins",
   label: "Desjardins",
   verified: false,
+  documented_by: [],
   mapping: null,
   format: null,
   notes: "No verified Desjardins export format yet. Map the columns yourself.",

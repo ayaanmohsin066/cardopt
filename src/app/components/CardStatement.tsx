@@ -14,6 +14,7 @@ import {
   type Category,
   type CsvFormat,
   type Overrides,
+  type Preset,
   type RowError,
   type Transaction,
 } from "@/engine";
@@ -29,7 +30,16 @@ const DEFAULT_FORMAT: CsvFormat = {
   purchase_sign: "positive",
 };
 
-function draftFor(columns: string[]): MappingDraft {
+function draftFor(columns: string[], preset: Preset): MappingDraft {
+  const m = isUsablePreset(preset) ? preset.mapping : null;
+  // Prefill from the preset only when every column it names is in this file.
+  if (m && Object.values(m).every((c) => c === null || columns.includes(c))) {
+    return emptyDraft({
+      date: m.date, description: m.description, amountMode: m.amount ? "single" : "split",
+      amount: m.amount ?? "", debit: m.debit ?? "", credit: m.credit ?? "", currency: m.currency ?? "",
+      foreign_amount: m.foreign_amount ?? "", exchange_rate: m.exchange_rate ?? "",
+    });
+  }
   const s = suggestMapping(columns);
   return emptyDraft({ date: s.date ?? "", description: s.description ?? "", amount: s.amount ?? "" });
 }
@@ -77,7 +87,7 @@ export function CardStatement({
       const content = await file.text();
       setFileName(file.name);
       setText(content);
-      setDraft(draftFor(parseCsv(content, format.has_header).columns));
+      setDraft(draftFor(parseCsv(content, format.has_header).columns, preset));
     } catch {
       setReadError("Couldn't read that file.");
     }
@@ -85,7 +95,7 @@ export function CardStatement({
 
   function onFormat(next: CsvFormat) {
     if (next.has_header !== format.has_header) {
-      setDraft(draftFor(parseCsv(text, next.has_header).columns));
+      setDraft(draftFor(parseCsv(text, next.has_header).columns, preset));
       onTransactions(null);
     }
     setFormat(next);
@@ -169,8 +179,10 @@ export function CardStatement({
           </label>
           {readError && <p className="text-sm text-danger">{readError}</p>}
           <p className="text-xs text-muted">
-            {usable
+            {usable && preset.verified
               ? `Using the verified ${preset.label} format.`
+              : usable
+                ? `Using the ${preset.label} format from public documentation. It hasn't been checked against a real ${preset.label} export, so check the columns below.`
               : preset.issuer_id
                 ? `We don't have a verified ${preset.label} export format yet, so choose the columns below.`
                 : "Choose which column is which below."}
