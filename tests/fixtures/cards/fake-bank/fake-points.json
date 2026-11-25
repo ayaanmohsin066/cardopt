@@ -70,6 +70,7 @@
       "source_url": "https://example.com/fake-bank/fake-points/trip"
     }
   ],
+  "eligibility": null,
   "source_url": "https://example.com/fake-bank/fake-points",
   "last_verified": "2026-01-01"
 }

@@ -22,6 +22,7 @@ const unverified = (): Record<string, unknown> => ({
   welcome_bonus: null,
   purchase_credits: null,
   perks: null,
+  eligibility: null,
   source_url: "https://example.com/card",
   last_verified: "2026-09-29",
 });
@@ -96,7 +97,7 @@ describe("validateCard", () => {
 
   it("treats a missing term as an error, not as unknown", () => {
     for (const key of ["network", "card_type", "program_id", "annual_fee", "first_year_fee",
-      "fx_fee_pct", "base_rate", "caps", "earn_rules", "welcome_bonus", "purchase_credits", "perks"]) {
+      "fx_fee_pct", "base_rate", "caps", "earn_rules", "welcome_bonus", "purchase_credits", "perks", "eligibility"]) {
       expect(errorsOf(without(key))).toEqual([`${key} is missing (use null if unverified)`]);
     }
     const er = rule();
@@ -312,5 +313,33 @@ describe("validateCard", () => {
     expect(errorsOf({ ...unverified(), perks: [ok] })).toEqual([
       "perks[0].requires_charge_to_card is missing (use null if unverified)",
     ]);
+  });
+
+  describe("eligibility", () => {
+    const withElig = (eligibility: unknown) => ({ ...unverified(), eligibility });
+
+    it("accepts null, verified numbers, \"none\" and per-field null", () => {
+      expect(errorsOf(withElig(null))).toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: 60000, min_household_income: 100000 }))).toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: "none", min_household_income: null }))).toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: 0, min_household_income: "none" }))).toEqual([]);
+    });
+
+    it("rejects negative incomes, other strings, missing fields and unknown fields", () => {
+      expect(errorsOf(withElig({ min_personal_income: -1, min_household_income: null }))).not.toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: "60k", min_household_income: null }))).not.toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: 60000 }))).not.toEqual([]);
+      expect(errorsOf(withElig({ min_personal_income: null, min_household_income: null, credit_score: 700 }))).not.toEqual([]);
+    });
+
+    it('rejects "none" on both paths (a card with no income requirement uses 0)', () => {
+      expect(errorsOf(withElig({ min_personal_income: "none", min_household_income: "none" }))).toEqual([
+        'eligibility must not be "none" on both paths (use 0 when there is no income requirement)',
+      ]);
+    });
+
+    it("is a required key: a card without it is invalid", () => {
+      expect(errorsOf(without("eligibility"))).not.toEqual([]);
+    });
   });
 });

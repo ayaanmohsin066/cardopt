@@ -49,6 +49,7 @@ function syntheticCard(i: number, r: () => number): Card {
       ? [{ description: `FAKE: $${pick(r, [50, 100, 150])} travel credit`, merchant_keywords: ["fake air"], statement_keywords: ["fake credit"], amount: pick(r, [50, 100, 150]), period: "year" }]
       : [],
     perks: [],
+    eligibility: null,
     source_url: `https://example.com/fake-bank/synthetic-${i}`,
     last_verified: "2026-01-01",
   };
