@@ -20,12 +20,15 @@ describe("runRecommendations", () => {
       solver,
       (stage) => { if (stages[stages.length - 1] !== stage) stages.push(stage); },
     );
-    expect(stages).toEqual(["your_cards", "comparing"]);
+    expect(stages).toEqual(["your_cards", "comparing", "wallet"]);
     expect(r.better.gain_annual).toBeCloseTo(156, 6);
     // Two cards held: replace either one, or add (owned cards in the catalogue are skipped).
     expect(r.change.changes.map((c) => c.action).sort()).toEqual(["add", "replace", "replace"]);
     expect(r.change.changes.every((c) => c.add === "fake-shared-cap")).toBe(true);
     expect(r.sens).not.toBeNull();
+    // Best wallet over owned + catalogue, valued by replay (never the MILP objective).
+    expect(r.wallet.status).toBe("ok");
+    expect(r.wallet).not.toHaveProperty("upper_bound");
     // Results cross the worker boundary by structured clone.
     expect(() => structuredClone(r)).not.toThrow();
   });

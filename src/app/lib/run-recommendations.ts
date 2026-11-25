@@ -1,5 +1,8 @@
 import {
   bestUseOfCards,
+  bestWallet,
+  type Applicant,
+  type BestWalletResult,
   changeACard,
   sensitivity,
   type CardSetEntry,
@@ -23,15 +26,18 @@ export interface RecommendRequest {
   /** [card id, categorized statement lines] */
   items: [string, CategorizedTransaction[]][];
   catalogue: CardSetEntry[];
+  /** Optional income for eligibility checks. In memory only: never persisted or logged. */
+  applicant?: Applicant | null;
 }
 
 export interface RecommendResults {
   better: UseBetterResult;
   change: ChangeResult;
   sens: SensitivityResult | null;
+  wallet: BestWalletResult;
 }
 
-export type Stage = "loading" | "your_cards" | "comparing" | "sensitivity";
+export type Stage = "loading" | "your_cards" | "comparing" | "sensitivity" | "wallet";
 
 export type WorkerMessage =
   | { id: number; type: "progress"; stage: Stage; done: number; total: number }
@@ -54,5 +60,8 @@ export function runRecommendations(
   const sens = top.length > 1
     ? sensitivity(top, req.owned, itemsByCard, req.catalogue, solver, (d, t) => progress("sensitivity", d, t))
     : null;
-  return { better, change, sens };
+  progress("wallet", 0, 1);
+  const wallet = bestWallet(req.owned, itemsByCard, req.catalogue, solver, { applicant: req.applicant ?? null });
+  progress("wallet", 1, 1);
+  return { better, change, sens, wallet };
 }

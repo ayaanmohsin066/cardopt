@@ -115,4 +115,18 @@ describe("project rules", () => {
     });
     expect(present).toEqual([]);
   });
+
+  it("the UI never reads an LP/MILP objective (upper_bound): shown values come from replay", () => {
+    const offenders = sourceFiles("src/app").filter((p) => /\bupper_bound\b/.test(readFileSync(p, "utf8")));
+    expect(offenders.map(rel)).toEqual([]);
+  });
+
+  it("applicant income is never persisted or logged", () => {
+    // Income lives in EarnMore's React state and the worker request only.
+    const offenders = sourceFiles("src").filter((p) => {
+      const text = readFileSync(p, "utf8");
+      return /income/i.test(text) && /(localStorage|sessionStorage|indexedDB|document\.cookie|console\.\w+\()/.test(text);
+    });
+    expect(offenders.map(rel)).toEqual([]);
+  });
 });

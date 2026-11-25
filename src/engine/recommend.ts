@@ -5,6 +5,7 @@
  */
 import { CATEGORIES, type Category } from "./categories";
 import type { CategorizedTransaction } from "./categorize";
+import { solveCatalogue, type Applicant, type CatalogueModelSize } from "./catalogue";
 import type { LpSolver } from "./lp";
 import {
   earnOptions,
@@ -302,6 +303,69 @@ export function changeACard(
     pruned,
     changes,
     excluded: [...excluded.values()],
+  };
+}
+
+export interface BestWalletResult {
+  status: "ok" | "no_data" | "no_usable_cards" | "infeasible" | "error";
+  message?: string;
+  projection: Projection;
+  /** The cards to hold, in catalogue order (owned cards first). */
+  cards: string[];
+  /** Cards in `cards` the user doesn't hold yet. */
+  new_cards: string[];
+  /** Replayed value of the chosen cards used as suggested, per year (projection, after fees). Never the MILP objective. */
+  total_annual: number;
+  policy: CategoryPolicy[];
+  credit_rules: CreditRule[];
+  /** Cards the applicant is verified ineligible for (never chosen). */
+  ineligible: string[];
+  /** Usable cards whose eligibility couldn't be checked: allowed, and flagged. */
+  eligibility_unverified: string[];
+  excluded: Excluded[];
+  model: CatalogueModelSize | null;
+}
+
+/**
+ * "Best wallet": the best set of at most `maxCards` cards from the owned
+ * cards plus the catalogue, for all of the user's spend, chosen by the
+ * catalogue MILP (solveCatalogue) and valued by replaying the transactions.
+ * Ongoing only: no welcome bonuses, annual fees (docs/decisions.md, "Catalogue MILP").
+ */
+export function bestWallet(
+  owned: readonly CardSetEntry[],
+  itemsByCard: ReadonlyMap<string, readonly CategorizedTransaction[]>,
+  catalogue: readonly CardSetEntry[],
+  solver: LpSolver,
+  opts: { applicant?: Applicant | null; maxCards?: number } = {},
+): BestWalletResult {
+  const ownedIds = new Set(owned.map((e) => e.card.id));
+  const entries = [
+    ...owned.map((e) => ({ ...e, is_new: false })),
+    ...catalogue.filter((e) => !ownedIds.has(e.card.id)).map((e) => ({ ...e, is_new: true })),
+  ];
+  const pool = poolStatements(itemsByCard);
+  const cells = spendCells(pool.spend);
+  const empty = { cards: [], new_cards: [], total_annual: 0, policy: [], credit_rules: [], ineligible: [], eligibility_unverified: [], excluded: [], model: null };
+  if (cells.length === 0) return { ...empty, status: "no_data", projection: projection(0) };
+
+  const r = solveCatalogue(entries, cells, opts, solver);
+  const proj = projection(r.months.length);
+  const flags = { ineligible: r.ineligible, eligibility_unverified: r.eligibility_unverified, excluded: r.excluded, model: r.model };
+  if (r.status !== "ok") return { ...empty, ...flags, status: r.status, message: r.message, projection: proj };
+
+  const chosen = entries.filter((e) => r.selected.includes(e.card.id));
+  const ev = evaluateSet(chosen, pool, cells, "ongoing", solver);
+  if (!ev.evaluation) return { ...empty, ...flags, status: "error", message: ev.error ?? "The chosen cards could not be replayed.", projection: proj };
+  return {
+    ...flags,
+    status: "ok",
+    projection: projection(ev.evaluation.score.months),
+    cards: r.selected,
+    new_cards: r.selected.filter((id) => !ownedIds.has(id)),
+    total_annual: ev.evaluation.score.total_annual,
+    policy: ev.evaluation.policy,
+    credit_rules: ev.evaluation.credit_rules,
   };
 }
 
